@@ -52,7 +52,7 @@ fn proper_transfer_action_call() {
 
     let msg = PnsTransferMsg {
         to: mock_address(1u8),
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
     let mut event_group = EventGroup::builder();
     let mut test_event_group = EventGroup::builder();
@@ -74,7 +74,7 @@ fn proper_transfer_from_action_call() {
     let msg = PnsTransferFromMsg {
         from: mock_address(1u8),
         to: mock_address(2u8),
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -97,7 +97,7 @@ fn proper_approve_action_call() {
 
     let msg = PnsApproveMsg {
         spender: mock_address(1u8),
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -138,7 +138,7 @@ fn proper_mint_action_call() {
     let dest = mock_address(30u8);
 
     let msg = PnsMintMsg {
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
         to: mock_address(1u8),
         token_uri: None,
         parent_id: Some(string_to_bytes("")),
@@ -164,7 +164,7 @@ fn proper_record_mint_action_call() {
     let dest = mock_address(30u8);
 
     let msg = RecordMintMsg {
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
         class: RecordClass::Wallet {},
         data: "".to_string(),
     };
@@ -188,7 +188,7 @@ fn proper_record_update_action_call() {
     let dest = mock_address(30u8);
 
     let msg = RecordUpdateMsg {
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
         class: RecordClass::Wallet {},
         data: "".to_string(),
     };
@@ -212,7 +212,7 @@ fn proper_record_delete_action_call() {
     let dest = mock_address(30u8);
 
     let msg = RecordDeleteMsg {
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
         class: RecordClass::Wallet {},
     };
 
@@ -235,7 +235,7 @@ fn proper_ownership_check_call() {
 
     let msg = PnsCheckOwnerMsg {
         owner: mock_address(1u8),
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -277,7 +277,7 @@ fn proper_revoke_action_call() {
 
     let msg = PnsRevokeMsg {
         spender: mock_address(1u8),
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -318,7 +318,7 @@ fn proper_burn_action_call() {
     let dest = mock_address(30u8);
 
     let msg = PnsBurnMsg {
-        token_id: string_to_bytes("name.meta"),
+        namehash: string_to_bytes("name.meta"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -357,31 +357,31 @@ fn proper_multi_mint_action_call() {
 
     let mints = vec![
         PnsMintMsg {
-            token_id: string_to_bytes("name.meta"),
+            namehash: string_to_bytes("name.meta"),
             to: mock_address(4),
             parent_id: None,
             token_uri: None,
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name2.meta"),
+            namehash: string_to_bytes("name2.meta"),
             to: mock_address(4),
             parent_id: None,
             token_uri: None,
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name3.meta"),
+            namehash: string_to_bytes("name3.meta"),
             to: mock_address(5),
             parent_id: None,
             token_uri: None,
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name4.meta"),
+            namehash: string_to_bytes("name4.meta"),
             to: mock_address(5),
             parent_id: None,
             token_uri: None,
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name5.meta"),
+            namehash: string_to_bytes("name5.meta"),
             to: mock_address(6),
             parent_id: None,
             token_uri: None,

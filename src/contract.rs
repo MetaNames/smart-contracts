@@ -37,10 +37,10 @@ pub fn transfer(
     ctx: ContractContext,
     state: ContractState,
     to: Address,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_transfer(&ctx, &mut state.pns, &PnsTransferMsg { to, token_id });
+    let events = execute_transfer(&ctx, &mut state.pns, &PnsTransferMsg { to, namehash });
 
     (state, events)
 }
@@ -51,13 +51,13 @@ pub fn transfer_from(
     state: ContractState,
     from: Address,
     to: Address,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
     let events = execute_transfer_from(
         &ctx,
         &mut state.pns,
-        &PnsTransferFromMsg { from, to, token_id },
+        &PnsTransferFromMsg { from, to, namehash },
     );
 
     (state, events)
@@ -68,10 +68,10 @@ pub fn approve(
     ctx: ContractContext,
     state: ContractState,
     spender: Address,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_approve(&ctx, &mut state.pns, &PnsApproveMsg { spender, token_id });
+    let events = execute_approve(&ctx, &mut state.pns, &PnsApproveMsg { spender, namehash });
 
     (state, events)
 }
@@ -92,7 +92,7 @@ pub fn set_base_uri(
 pub fn mint(
     ctx: ContractContext,
     state: ContractState,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
     to: Address,
     token_uri: Option<String>,
     parent_id: Option<Vec<u8>>,
@@ -102,7 +102,7 @@ pub fn mint(
         &ctx,
         &mut state.pns,
         &PnsMintMsg {
-            token_id,
+            namehash,
             to,
             token_uri,
             parent_id,
@@ -129,10 +129,10 @@ pub fn revoke(
     ctx: ContractContext,
     state: ContractState,
     spender: Address,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_revoke(&ctx, &mut state.pns, &PnsRevokeMsg { spender, token_id });
+    let events = execute_revoke(&ctx, &mut state.pns, &PnsRevokeMsg { spender, namehash });
 
     (state, events)
 }
@@ -153,10 +153,10 @@ pub fn revoke_for_all(
 pub fn burn(
     ctx: ContractContext,
     state: ContractState,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_burn(&ctx, &mut state.pns, &PnsBurnMsg { token_id });
+    let events = execute_burn(&ctx, &mut state.pns, &PnsBurnMsg { namehash });
 
     (state, events)
 }
@@ -166,10 +166,10 @@ pub fn check_ownership(
     ctx: ContractContext,
     state: ContractState,
     owner: Address,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_ownership_check(&ctx, &mut state.pns, &PnsCheckOwnerMsg { owner, token_id });
+    let events = execute_ownership_check(&ctx, &mut state.pns, &PnsCheckOwnerMsg { owner, namehash });
     (state, events)
 }
 #[action(shortname = 0x19)]
@@ -198,7 +198,7 @@ pub fn multi_mint(
 pub fn mint_record(
     ctx: ContractContext,
     state: ContractState,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
     class: RecordClass,
     data: String,
 ) -> (ContractState, Vec<EventGroup>) {
@@ -207,7 +207,7 @@ pub fn mint_record(
         &ctx,
         &mut state.pns,
         &RecordMintMsg {
-            token_id,
+            namehash,
             class,
             data,
         },
@@ -220,7 +220,7 @@ pub fn mint_record(
 pub fn update_record(
     ctx: ContractContext,
     state: ContractState,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
     class: RecordClass,
     data: String,
 ) -> (ContractState, Vec<EventGroup>) {
@@ -229,7 +229,7 @@ pub fn update_record(
         &ctx,
         &mut state.pns,
         &RecordUpdateMsg {
-            token_id,
+            namehash,
             class,
             data,
         },
@@ -242,11 +242,11 @@ pub fn update_record(
 pub fn delete_record(
     ctx: ContractContext,
     state: ContractState,
-    token_id: Vec<u8>,
+    namehash: Vec<u8>,
     class: RecordClass,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_record_delete(&ctx, &mut state.pns, &RecordDeleteMsg { token_id, class });
+    let events = execute_record_delete(&ctx, &mut state.pns, &RecordDeleteMsg { namehash, class });
 
     (state, events)
 }
