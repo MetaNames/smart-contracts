@@ -34,8 +34,8 @@ pub struct PnsInitMsg {
 pub struct PnsTransferMsg {
     /// receiver address
     pub to: Address,
-    /// token id
-    pub token_id: Vec<u8>,
+    /// name hash of domain
+    pub namehash: Vec<u8>,
 }
 
 /// ## Description
@@ -47,8 +47,8 @@ pub struct PnsTransferFromMsg {
     pub from: Address,
     /// receiver address
     pub to: Address,
-    /// token id
-    pub token_id: Vec<u8>,
+    /// name hash of domain
+    pub namehash: Vec<u8>,
 }
 
 /// ## Description
@@ -58,8 +58,8 @@ pub struct PnsTransferFromMsg {
 pub struct PnsApproveMsg {
     /// operator address to approve
     pub spender: Address,
-    /// token id
-    pub token_id: Vec<u8>,
+    /// name hash of domain
+    pub namehash: Vec<u8>,
 }
 
 /// ## Description
@@ -76,8 +76,8 @@ pub struct PnsSetBaseUriMsg {
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
 #[rpc_msg(action = 0x09)]
 pub struct PnsMintMsg {
-    /// newly minted token id
-    pub token_id: Vec<u8>,
+    /// newly minted name hash of domain
+    pub namehash: Vec<u8>,
     /// receiver address
     pub to: Address,
     /// optional token_uri
@@ -102,8 +102,8 @@ pub struct PnsApproveForAllMsg {
 pub struct PnsRevokeMsg {
     /// operator address to revoke
     pub spender: Address,
-    /// token id
-    pub token_id: Vec<u8>,
+    /// name hash of domain
+    pub namehash: Vec<u8>,
 }
 
 /// ## Description
@@ -120,8 +120,8 @@ pub struct PnsRevokeForAllMsg {
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
 #[rpc_msg(action = 0x17)]
 pub struct PnsBurnMsg {
-    /// token id to burn
-    pub token_id: Vec<u8>,
+    /// name hash of domain to burn
+    pub namehash: Vec<u8>,
 }
 
 /// ## Description
@@ -131,8 +131,8 @@ pub struct PnsBurnMsg {
 pub struct PnsCheckOwnerMsg {
     /// receiver address
     pub owner: Address,
-    /// token id
-    pub token_id: Vec<u8>,
+    /// name hash of domain
+    pub namehash: Vec<u8>,
 }
 /// ## Description
 /// This structure describes fields for the Update Minter Msg
@@ -158,7 +158,7 @@ pub struct PnsMultiMintMsg {
 #[rpc_msg(action = 0x21)]
 pub struct RecordMintMsg {
     /// Related domain
-    pub token_id: Vec<u8>,
+    pub namehash: Vec<u8>,
     /// Class type
     pub class: RecordClass,
     /// Data
@@ -171,7 +171,7 @@ pub struct RecordMintMsg {
 #[rpc_msg(action = 0x22)]
 pub struct RecordUpdateMsg {
     /// Related domain
-    pub token_id: Vec<u8>,
+    pub namehash: Vec<u8>,
     /// Class type
     pub class: RecordClass,
     /// Data
@@ -184,7 +184,7 @@ pub struct RecordUpdateMsg {
 #[rpc_msg(action = 0x23)]
 pub struct RecordDeleteMsg {
     /// Related domain
-    pub token_id: Vec<u8>,
+    pub namehash: Vec<u8>,
     /// Class type
     pub class: RecordClass,
 }

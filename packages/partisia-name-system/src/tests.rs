@@ -57,7 +57,7 @@ fn proper_transfer_action_call() {
 
     let msg = PnsTransferMsg {
         to: mock_address(1u8),
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
     let mut event_group = EventGroup::builder();
     let mut test_event_group = EventGroup::builder();
@@ -79,7 +79,7 @@ fn proper_transfer_from_action_call() {
     let msg = PnsTransferFromMsg {
         from: mock_address(1u8),
         to: mock_address(2u8),
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -102,7 +102,7 @@ fn proper_approve_action_call() {
 
     let msg = PnsApproveMsg {
         spender: mock_address(1u8),
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -143,7 +143,7 @@ fn proper_mint_action_call() {
     let dest = mock_address(30u8);
 
     let msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         to: mock_address(1u8),
         token_uri: Some("uri".to_string()),
         parent_id: Some(string_to_bytes("meta")),
@@ -170,7 +170,7 @@ fn proper_ownership_check_call() {
 
     let msg = PnsCheckOwnerMsg {
         owner: mock_address(1u8),
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -212,7 +212,7 @@ fn proper_revoke_action_call() {
 
     let msg = PnsRevokeMsg {
         spender: mock_address(1u8),
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -253,7 +253,7 @@ fn proper_burn_action_call() {
     let dest = mock_address(30u8);
 
     let msg = PnsBurnMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
     };
 
     let mut event_group = EventGroup::builder();
@@ -292,31 +292,31 @@ fn proper_multi_mint_action_call() {
 
     let mints = vec![
         PnsMintMsg {
-            token_id: string_to_bytes("name"),
+            namehash: string_to_bytes("name"),
             to: mock_address(4),
             token_uri: Some(String::from("Token1")),
             parent_id: Some(string_to_bytes("meta")),
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name2"),
+            namehash: string_to_bytes("name2"),
             to: mock_address(4),
             token_uri: Some(String::from("Token2")),
             parent_id: Some(string_to_bytes("meta")),
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name3"),
+            namehash: string_to_bytes("name3"),
             to: mock_address(5),
             token_uri: Some(String::from("Token3")),
             parent_id: Some(string_to_bytes("meta")),
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name4"),
+            namehash: string_to_bytes("name4"),
             to: mock_address(5),
             token_uri: Some(String::from("Token4")),
             parent_id: Some(string_to_bytes("meta")),
         },
         PnsMintMsg {
-            token_id: string_to_bytes("name5"),
+            namehash: string_to_bytes("name5"),
             to: mock_address(6),
             token_uri: Some(String::from("Token5")),
             parent_id: Some(string_to_bytes("meta")),
@@ -375,7 +375,7 @@ fn proper_mint() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -406,7 +406,7 @@ fn sender_is_not_minter_on_mint() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         to: mock_address(alice),
         token_uri: Some("name".to_string()),
         parent_id: Some(string_to_bytes("meta")),
@@ -434,7 +434,7 @@ fn token_already_minted_on_mint() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         token_uri: Some("name".to_string()),
         to: mock_address(alice),
         parent_id: Some(string_to_bytes("meta")),
@@ -443,7 +443,7 @@ fn token_already_minted_on_mint() {
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         token_uri: Some("name".to_string()),
         to: mock_address(alice),
         parent_id: Some(string_to_bytes("meta")),
@@ -472,7 +472,7 @@ fn mint_fails_when_parent_does_not_exist() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("not.existing.meta")),
@@ -502,7 +502,7 @@ fn mint_fails_when_parent_is_not_owned() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -511,7 +511,7 @@ fn mint_fails_when_parent_is_not_owned() {
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("bob.name"),
+        namehash: string_to_bytes("bob.name"),
         to: mock_address(alice),
         token_uri: Some(String::from("bob.name")),
         parent_id: Some(string_to_bytes("name")),
@@ -540,7 +540,7 @@ fn when_parent_is_not_owned_no_mint() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("not.existing.meta")),
@@ -584,7 +584,7 @@ fn proper_record_mint() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -593,7 +593,7 @@ fn proper_record_mint() {
 
     let record_class = RecordClass::Twitter {};
     let record_mint_msg = RecordMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "data".to_string(),
     };
@@ -627,7 +627,7 @@ fn when_token_not_present_record_mint_fails() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         to: mock_address(alice),
         token_uri: Some("name".to_string()),
         parent_id: Some(string_to_bytes("meta")),
@@ -636,7 +636,7 @@ fn when_token_not_present_record_mint_fails() {
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let record_mint = RecordMintMsg {
-        token_id: string_to_bytes("not-existing.meta"),
+        namehash: string_to_bytes("not-existing.meta"),
         class: RecordClass::Wallet {},
         data: "some data".to_string(),
     };
@@ -664,7 +664,7 @@ fn when_token_not_owned_record_mint_fails() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         to: mock_address(alice),
         token_uri: Some("name".to_string()),
         parent_id: Some(string_to_bytes("meta")),
@@ -673,7 +673,7 @@ fn when_token_not_owned_record_mint_fails() {
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let record_mint = RecordMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         class: RecordClass::Wallet {},
         data: "some data".to_string(),
     };
@@ -700,7 +700,7 @@ fn record_already_minted_on_record_mint() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let mint_msg = PnsMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         to: mock_address(alice),
         token_uri: Some("name".to_string()),
         parent_id: Some(string_to_bytes("meta")),
@@ -709,7 +709,7 @@ fn record_already_minted_on_record_mint() {
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let record_mint = RecordMintMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         class: RecordClass::Wallet {},
         data: "some data".to_string(),
     };
@@ -737,7 +737,7 @@ fn proper_record_update() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -746,14 +746,14 @@ fn proper_record_update() {
 
     let record_class = RecordClass::Twitter {};
     let record_mint_msg = RecordMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "data".to_string(),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_update_msg = RecordUpdateMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "new data".to_string(),
     };
@@ -792,7 +792,7 @@ fn when_record_does_not_exist_record_update_fails() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let record_update_msg = RecordUpdateMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         class: RecordClass::Twitter {},
         data: "new data".to_string(),
     };
@@ -825,7 +825,7 @@ fn when_record_is_not_owned_record_update_fails() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -834,14 +834,14 @@ fn when_record_is_not_owned_record_update_fails() {
 
     let record_class = RecordClass::Twitter {};
     let record_mint_msg = RecordMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "data".to_string(),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_update_msg = RecordUpdateMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "new data".to_string(),
     };
@@ -876,7 +876,7 @@ fn proper_record_delete() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -885,14 +885,14 @@ fn proper_record_delete() {
 
     let record_class = RecordClass::Twitter {};
     let record_mint_msg = RecordMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "data".to_string(),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_delete_msg = RecordDeleteMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
     };
 
@@ -926,7 +926,7 @@ fn when_record_does_not_exist_record_delete_fails() {
     let (mut state, events) = execute_init(&mock_contract_context(2), &msg);
 
     let record_delete_msg = RecordDeleteMsg {
-        token_id: string_to_bytes("name"),
+        namehash: string_to_bytes("name"),
         class: RecordClass::Twitter {},
     };
 
@@ -958,7 +958,7 @@ fn when_record_is_not_owned_record_delete_fails() {
 
     let ref token_id = string_to_bytes("name");
     let mint_msg = PnsMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         to: mock_address(alice),
         token_uri: Some(String::from("name")),
         parent_id: Some(string_to_bytes("meta")),
@@ -967,14 +967,14 @@ fn when_record_is_not_owned_record_delete_fails() {
 
     let record_class = RecordClass::Twitter {};
     let record_mint_msg = RecordMintMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
         data: "data".to_string(),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_delete_msg = RecordDeleteMsg {
-        token_id: token_id.clone(),
+        namehash: token_id.clone(),
         class: record_class,
     };
 

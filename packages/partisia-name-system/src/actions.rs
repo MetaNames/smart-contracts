@@ -45,7 +45,7 @@ pub fn execute_init(
     let mut mint_events: Vec<EventGroup> = vec![];
     if let Some(tld) = &msg.tld {
         let mint_msg = PnsMintMsg {
-            token_id: tld.clone(),
+            namehash: tld.clone(),
             to: msg.minter,
             token_uri: msg.tld_uri.clone(),
             parent_id: None
@@ -71,7 +71,7 @@ pub fn execute_transfer(
     state: &mut PartisiaNameSystemState,
     msg: &PnsTransferMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_transfer(
@@ -95,7 +95,7 @@ pub fn execute_transfer_from(
     state: &mut PartisiaNameSystemState,
     msg: &PnsTransferFromMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_transfer_from(
@@ -120,7 +120,7 @@ pub fn execute_approve(
     state: &mut PartisiaNameSystemState,
     msg: &PnsApproveMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_approve(
@@ -164,7 +164,7 @@ pub fn execute_mint(
     state: &mut PartisiaNameSystemState,
     msg: &PnsMintMsg,
 ) -> Vec<EventGroup> {
-    assert!(!state.is_minted(&msg.token_id), "{}", ContractError::Minted);
+    assert!(!state.is_minted(&msg.namehash), "{}", ContractError::Minted);
 
     // Guards to test validity of parent before creating a new domain
     if let Some(parent_id) = &msg.parent_id {
@@ -203,7 +203,7 @@ pub fn execute_mint(
     }
 
     state.domains.insert(
-        msg.token_id.clone(),
+        msg.namehash.clone(),
         Domain {
             token_id: new_token_id,
         },
@@ -242,7 +242,7 @@ pub fn execute_revoke(
     state: &mut PartisiaNameSystemState,
     msg: &PnsRevokeMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_revoke(
@@ -286,7 +286,7 @@ pub fn execute_burn(
     state: &mut PartisiaNameSystemState,
     msg: &PnsBurnMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_burn(
@@ -328,7 +328,7 @@ pub fn execute_ownership_check(
     state: &mut PartisiaNameSystemState,
     msg: &PnsCheckOwnerMsg,
 ) -> Vec<EventGroup> {
-    let num_token_id = state.token_id(&msg.token_id);
+    let num_token_id = state.token_id(&msg.namehash);
     assert!(num_token_id.is_some(), "{}", ContractError::NotFound);
 
     let events = mpc721_actions::execute_ownership_check(
@@ -372,19 +372,19 @@ pub fn execute_record_mint(
     msg: &RecordMintMsg,
 ) -> Vec<EventGroup> {
     assert!(
-        state.is_minted(&msg.token_id),
+        state.is_minted(&msg.namehash),
         "{}",
         ContractError::NotFound
     );
 
-    let domain = state.domain_info(&msg.token_id).unwrap();
+    let domain = state.domain_info(&msg.namehash).unwrap();
     assert!(
         state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.mint_record(&msg.token_id, &msg.class, &msg.data);
+    state.mint_record(&msg.namehash, &msg.class, &msg.data);
 
     vec![]
 }
@@ -399,25 +399,25 @@ pub fn execute_record_update(
     msg: &RecordUpdateMsg,
 ) -> Vec<EventGroup> {
     assert!(
-        state.is_minted(&msg.token_id),
+        state.is_minted(&msg.namehash),
         "{}",
         ContractError::NotFound
     );
 
     assert!(
-        state.is_record_minted(&msg.token_id, &msg.class),
+        state.is_record_minted(&msg.namehash, &msg.class),
         "{}",
         ContractError::NotFound
     );
 
-    let domain = state.domain_info(&msg.token_id).unwrap();
+    let domain = state.domain_info(&msg.namehash).unwrap();
     assert!(
         state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.update_record_data(&msg.token_id, &msg.class, &msg.data);
+    state.update_record_data(&msg.namehash, &msg.class, &msg.data);
 
     vec![]
 }
@@ -432,25 +432,25 @@ pub fn execute_record_delete(
     msg: &RecordDeleteMsg,
 ) -> Vec<EventGroup> {
     assert!(
-        state.is_minted(&msg.token_id),
+        state.is_minted(&msg.namehash),
         "{}",
         ContractError::NotFound
     );
 
     assert!(
-        state.is_record_minted(&msg.token_id, &msg.class),
+        state.is_record_minted(&msg.namehash, &msg.class),
         "{}",
         ContractError::NotFound
     );
 
-    let domain = state.domain_info(&msg.token_id).unwrap();
+    let domain = state.domain_info(&msg.namehash).unwrap();
     assert!(
         state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.delete_record(&msg.token_id, &msg.class);
+    state.delete_record(&msg.namehash, &msg.class);
 
     vec![]
 }
