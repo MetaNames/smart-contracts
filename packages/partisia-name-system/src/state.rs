@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap};
+use std::collections::BTreeMap;
 
 use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
@@ -49,21 +49,21 @@ pub enum RecordClass {
 
 impl PartisiaNameSystemState {
     /// ## Description
-    /// Returns domain info by token id
-    pub fn domain_info(&self, domain: &[u8]) -> Option<&Domain> {
-        self.domains.get(domain)
+    /// Returns domain info by namehash
+    pub fn domain_info(&self, namehash: &[u8]) -> Option<&Domain> {
+        self.domains.get(namehash)
     }
 
     /// ## Description
-    /// Says is token id minted or not
-    pub fn is_minted(&self, token_id: &[u8]) -> bool {
-        self.domains.contains_key(token_id)
+    /// Says if domain minted or not
+    pub fn is_minted(&self, namehash: &[u8]) -> bool {
+        self.domains.contains_key(namehash)
     }
 
     /// ## Description
-    /// Returns token info by domain
-    pub fn token_info(&self, domain: &[u8]) -> Option<&TokenInfo> {
-        let domain = self.domain_info(domain);
+    /// Returns token info by namehash
+    pub fn token_info(&self, namehash: &[u8]) -> Option<&TokenInfo> {
+        let domain = self.domain_info(namehash);
         if domain.is_none() {
             return None;
         }
@@ -72,23 +72,23 @@ impl PartisiaNameSystemState {
     }
 
     /// ## Description
-    /// This function returns token id for given domain
-    pub fn token_id(&self, domain: &[u8]) -> Option<u128> {
-        self.domains.get(domain).map(|d| d.token_id)
+    /// This function returns token id for given namehash
+    pub fn token_id(&self, namehash: &[u8]) -> Option<u128> {
+        self.domains.get(namehash).map(|d| d.token_id)
     }
 
     /// ## Description
-    /// Returns record info by token id
-    pub fn record_info(&self, token_id: &[u8], class: &RecordClass) -> Option<&Record> {
-        let qualified_name = Self::fully_qualified_name(token_id, class);
+    /// Returns record info by namehash
+    pub fn record_info(&self, namehash: &[u8], class: &RecordClass) -> Option<&Record> {
+        let qualified_name = Self::fully_qualified_name(namehash, class);
         self.records.get(&qualified_name)
     }
 
     /// ## Description
     /// Returns boolean if account is allowed to manage domain
     /// ## Params
-    pub fn allowed_to_manage(&self, account: &Address, domain: &[u8]) -> bool {
-        let domain = self.domain_info(domain);
+    pub fn allowed_to_manage(&self, account: &Address, hashname: &[u8]) -> bool {
+        let domain = self.domain_info(hashname);
         if domain.is_none() {
             return false;
         }
@@ -99,9 +99,9 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Mints record for token
-    pub fn mint_record(&mut self, token_id: &[u8], class: &RecordClass, data: &String) {
+    pub fn mint_record(&mut self, namehash: &[u8], class: &RecordClass, data: &String) {
         let record = Record { data: data.clone() };
-        let qualified_name = Self::fully_qualified_name(token_id, class);
+        let qualified_name = Self::fully_qualified_name(namehash, class);
         assert!(
             !self.records.contains_key(&qualified_name),
             "{}",
@@ -113,10 +113,10 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Update data of a record
-    pub fn update_record_data(&mut self, token_id: &[u8], class: &RecordClass, data: &String) {
-        assert!(self.is_minted(token_id), "{}", ContractError::NotMinted);
+    pub fn update_record_data(&mut self, namehash: &[u8], class: &RecordClass, data: &String) {
+        assert!(self.is_minted(namehash), "{}", ContractError::NotMinted);
 
-        let qualified_name = Self::fully_qualified_name(token_id, class);
+        let qualified_name = Self::fully_qualified_name(namehash, class);
         self.records.entry(qualified_name).and_modify(|t| {
             t.data = data.clone();
         });
@@ -124,10 +124,10 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Remove a record
-    pub fn delete_record(&mut self, token_id: &[u8], class: &RecordClass) {
-        assert!(self.is_minted(token_id), "{}", ContractError::NotMinted);
+    pub fn delete_record(&mut self, namehash: &[u8], class: &RecordClass) {
+        assert!(self.is_minted(namehash), "{}", ContractError::NotMinted);
 
-        let qualified_name = Self::fully_qualified_name(token_id, class);
+        let qualified_name = Self::fully_qualified_name(namehash, class);
         if self.records.contains_key(&qualified_name) {
             self.records.remove_entry(&qualified_name);
         } else {
@@ -137,8 +137,8 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Says if record minted or not
-    pub fn is_record_minted(&self, token_id: &[u8], class: &RecordClass) -> bool {
-        let qualified_name = Self::fully_qualified_name(token_id, class);
+    pub fn is_record_minted(&self, hashname: &[u8], class: &RecordClass) -> bool {
+        let qualified_name = Self::fully_qualified_name(hashname, class);
         self.records.contains_key(&qualified_name)
     }
 
@@ -147,7 +147,7 @@ impl PartisiaNameSystemState {
     /// It's a vector of bytes where first byte is a class hex and the rest is a name hash
     /// ## Example
     /// 0x0 + 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
-    fn fully_qualified_name(token_id: &[u8], class: &RecordClass) -> Vec<u8> {
+    fn fully_qualified_name(namehash: &[u8], class: &RecordClass) -> Vec<u8> {
         let class_hex: u8 = match class {
             RecordClass::Wallet {} => 0x0,
             RecordClass::Uri {} => 0x1,
@@ -156,7 +156,7 @@ impl PartisiaNameSystemState {
 
         let mut vec: Vec<u8> = vec![class_hex];
 
-        vec.extend(token_id);
+        vec.extend(namehash);
         vec
     }
 }
