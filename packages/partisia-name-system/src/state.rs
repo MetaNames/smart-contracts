@@ -15,20 +15,20 @@ use crate::ContractError;
 pub struct PartisiaNameSystemState {
     pub mpc721: MPC721ContractState,
     pub version: ContractVersionBase,
-    /// the domain key is a name hash
+    /// the domain key is a the domain name in bytes
     pub domains: BTreeMap<Vec<u8>, Domain>,
-    /// The records are stored in a BTreeMap with the key being the fully qualified name
-    pub records: BTreeMap<Vec<u8>, Record>,
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
 pub struct Domain {
     pub token_id: u128,
+    pub records: BTreeMap<RecordClass, Record>,
+    pub parent: Option<Vec<u8>>,
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
 pub struct Record {
-    pub data: String,
+    pub data: Vec<u8>,
 }
 
 #[repr(u8)]
@@ -47,6 +47,68 @@ pub enum RecordClass {
     Twitter {},
 }
 
+impl Domain {
+    /// ## Description
+    /// Returns record info by class
+    pub fn record_info(&self, class: &RecordClass) -> Option<&Record> {
+        self.records.get(class)
+    }
+
+    /// ## Description
+    /// Returns record data given record class
+    pub fn record_data(&self, class: &RecordClass) -> Option<&Vec<u8>> {
+        let record = self.record_info(class);
+        if record.is_none() {
+            return None;
+        }
+
+        Some(&record.unwrap().data)
+    }
+
+    /// ## Description
+    /// Says if record class is minted or not
+    pub fn is_record_minted(&self, class: &RecordClass) -> bool {
+        self.records.contains_key(class)
+    }
+
+    /// ## Description
+    /// Mints record given record class
+    pub fn mint_record(&mut self, class: &RecordClass, data: &Vec<u8>) {
+        let record = Record { data: data.clone() };
+        assert!(
+            !self.is_record_minted(class),
+            "{}",
+            ContractError::RecordMinted
+        );
+
+        self.records.insert(class.clone(), record);
+    }
+
+    /// ## Description
+    /// Update record data given record class
+    pub fn update_record_data(&mut self, class: &RecordClass, data: &Vec<u8>) {
+        assert!(
+            self.is_record_minted(class),
+            "{}",
+            ContractError::RecordNotMinted
+        );
+
+        self.records.get_mut(class).unwrap().data = data.clone();
+    }
+
+    /// ## Description
+    /// Remove record given record class
+    pub fn remove_record(&mut self, class: &RecordClass) {
+        assert!(
+            self.is_record_minted(class),
+            "{}",
+            ContractError::RecordNotMinted
+        );
+
+        self.records.remove(class);
+    }
+}
+
 impl PartisiaNameSystemState {
     /// ## Description
     /// Returns domain info by token id
@@ -56,8 +118,8 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Says is token id minted or not
-    pub fn is_minted(&self, token_id: &[u8]) -> bool {
-        self.domains.contains_key(token_id)
+    pub fn is_minted(&self, domain: &[u8]) -> bool {
+        self.domains.contains_key(domain)
     }
 
     /// ## Description
@@ -78,13 +140,6 @@ impl PartisiaNameSystemState {
     }
 
     /// ## Description
-    /// Returns record info by token id
-    pub fn record_info(&self, token_id: &[u8], class: &RecordClass) -> Option<&Record> {
-        let qualified_name = Self::fully_qualified_name(token_id, class);
-        self.records.get(&qualified_name)
-    }
-
-    /// ## Description
     /// Returns boolean if account is allowed to manage domain
     /// ## Params
     pub fn allowed_to_manage(&self, account: &Address, domain: &[u8]) -> bool {
@@ -95,68 +150,5 @@ impl PartisiaNameSystemState {
 
         self.mpc721
             .allowed_to_manage(account, domain.unwrap().token_id)
-    }
-
-    /// ## Description
-    /// Mints record for token
-    pub fn mint_record(&mut self, token_id: &[u8], class: &RecordClass, data: &String) {
-        let record = Record { data: data.clone() };
-        let qualified_name = Self::fully_qualified_name(token_id, class);
-        assert!(
-            !self.records.contains_key(&qualified_name),
-            "{}",
-            ContractError::RecordMinted
-        );
-
-        self.records.insert(qualified_name, record);
-    }
-
-    /// ## Description
-    /// Update data of a record
-    pub fn update_record_data(&mut self, token_id: &[u8], class: &RecordClass, data: &String) {
-        assert!(self.is_minted(token_id), "{}", ContractError::NotMinted);
-
-        let qualified_name = Self::fully_qualified_name(token_id, class);
-        self.records.entry(qualified_name).and_modify(|t| {
-            t.data = data.clone();
-        });
-    }
-
-    /// ## Description
-    /// Remove a record
-    pub fn delete_record(&mut self, token_id: &[u8], class: &RecordClass) {
-        assert!(self.is_minted(token_id), "{}", ContractError::NotMinted);
-
-        let qualified_name = Self::fully_qualified_name(token_id, class);
-        if self.records.contains_key(&qualified_name) {
-            self.records.remove_entry(&qualified_name);
-        } else {
-            panic!("{}", ContractError::NotFound);
-        }
-    }
-
-    /// ## Description
-    /// Says if record minted or not
-    pub fn is_record_minted(&self, token_id: &[u8], class: &RecordClass) -> bool {
-        let qualified_name = Self::fully_qualified_name(token_id, class);
-        self.records.contains_key(&qualified_name)
-    }
-
-    /// ## Description
-    /// Get fully qualified name for token and record class.
-    /// It's a vector of bytes where first byte is a class hex and the rest is a name hash
-    /// ## Example
-    /// 0x0 + 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
-    fn fully_qualified_name(token_id: &[u8], class: &RecordClass) -> Vec<u8> {
-        let class_hex: u8 = match class {
-            RecordClass::Wallet {} => 0x0,
-            RecordClass::Uri {} => 0x1,
-            RecordClass::Twitter {} => 0x2,
-        };
-
-        let mut vec: Vec<u8> = vec![class_hex];
-
-        vec.extend(token_id);
-        vec
     }
 }
