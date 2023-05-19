@@ -57,12 +57,10 @@ impl Domain {
     /// ## Description
     /// Returns record data given record class
     pub fn record_data(&self, class: &RecordClass) -> Option<&Vec<u8>> {
-        let record = self.record_info(class);
-        if record.is_none() {
-            return None;
+        match self.record_info(class) {
+            None => None,
+            Some(record) => Some(&record.data),
         }
-
-        Some(&record.unwrap().data)
     }
 
     /// ## Description
@@ -73,27 +71,27 @@ impl Domain {
 
     /// ## Description
     /// Mints record given record class
-    pub fn mint_record(&mut self, class: &RecordClass, data: &Vec<u8>) {
-        let record = Record { data: data.clone() };
+    pub fn mint_record(&mut self, class: &RecordClass, data: &[u8]) {
+        let record = Record { data: data.to_vec() };
         assert!(
             !self.is_record_minted(class),
             "{}",
             ContractError::RecordMinted
         );
 
-        self.records.insert(class.clone(), record);
+        self.records.insert(*class, record);
     }
 
     /// ## Description
     /// Update record data given record class
-    pub fn update_record_data(&mut self, class: &RecordClass, data: &Vec<u8>) {
+    pub fn update_record_data(&mut self, class: &RecordClass, data: &[u8]) {
         assert!(
             self.is_record_minted(class),
             "{}",
             ContractError::RecordNotMinted
         );
 
-        self.records.get_mut(class).unwrap().data = data.clone();
+        self.records.get_mut(class).unwrap().data = data.to_vec();
     }
 
     /// ## Description

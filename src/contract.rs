@@ -200,7 +200,7 @@ pub fn mint_record(
     state: ContractState,
     token_id: Vec<u8>,
     class: RecordClass,
-    data: String,
+    data: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
     let events = execute_record_mint(
@@ -222,7 +222,7 @@ pub fn update_record(
     state: ContractState,
     token_id: Vec<u8>,
     class: RecordClass,
-    data: String,
+    data: Vec<u8>,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
     let events = execute_record_update(
