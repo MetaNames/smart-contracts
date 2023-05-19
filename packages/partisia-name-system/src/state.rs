@@ -15,7 +15,7 @@ use crate::ContractError;
 pub struct PartisiaNameSystemState {
     pub mpc721: MPC721ContractState,
     pub version: ContractVersionBase,
-    /// the domain key is a the domain name in bytes
+    /// the domain key is the domain name in bytes
     pub domains: BTreeMap<Vec<u8>, Domain>,
 }
 
