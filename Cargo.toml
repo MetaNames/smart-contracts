@@ -26,6 +26,7 @@ serde_json = "1.0"
 
 [dev-dependencies]
 utils = { path = "./packages/utils" }
+cargo-audit = "0.17"
 
 [features]
 abi = ["pbc_contract_common/abi", "pbc_contract_codegen/abi", "pbc_traits/abi", "create_type_spec_derive/abi", "partisia-name-system/abi", "contract-version-base/abi", "utils/abi"]
