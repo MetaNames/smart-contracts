@@ -270,7 +270,7 @@ impl MPC721ContractState {
     /// * **account** is an object of type [`Address`]
     ///
     /// * **token_id** is an object of type [`u128`]
-    pub fn allowed_to_manage(
+    pub fn is_allowed_to_manage(
         &self,
         account: &Address,
         token_id: u128,
