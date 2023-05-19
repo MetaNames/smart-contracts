@@ -162,7 +162,7 @@ pub struct RecordMintMsg {
     /// Class type
     pub class: RecordClass,
     /// Data
-    pub data: String,
+    pub data: Vec<u8>,
 }
 
 /// ## Description
@@ -175,7 +175,7 @@ pub struct RecordUpdateMsg {
     /// Class type
     pub class: RecordClass,
     /// Data
-    pub data: String,
+    pub data: Vec<u8>,
 }
 
 /// ## Description

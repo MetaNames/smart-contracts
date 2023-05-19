@@ -2,7 +2,7 @@ use std::{panic::catch_unwind, rc::Rc, sync::Mutex};
 
 use crate::{
     actions::{
-        execute_init, execute_mint, execute_record_delete, execute_record_mint,
+        execute_init, execute_mint, execute_record_mint, execute_record_remove,
         execute_record_update,
     },
     msg::{
@@ -595,15 +595,19 @@ fn proper_record_mint() {
     let record_mint_msg = RecordMintMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "data".to_string(),
+        data: string_to_bytes("data"),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
-    let record = state.record_info(token_id, &record_class).unwrap();
+    let record = state
+        .domain_info(token_id)
+        .unwrap()
+        .record_info(&record_class)
+        .unwrap();
     assert_eq!(
         *record,
         Record {
-            data: "data".to_string(),
+            data: string_to_bytes("data"),
         }
     );
 }
@@ -638,7 +642,7 @@ fn when_token_not_present_record_mint_fails() {
     let record_mint = RecordMintMsg {
         token_id: string_to_bytes("not-existing.meta"),
         class: RecordClass::Wallet {},
-        data: "some data".to_string(),
+        data: string_to_bytes("some data"),
     };
 
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint);
@@ -675,7 +679,7 @@ fn when_token_not_owned_record_mint_fails() {
     let record_mint = RecordMintMsg {
         token_id: string_to_bytes("name"),
         class: RecordClass::Wallet {},
-        data: "some data".to_string(),
+        data: string_to_bytes("some data"),
     };
 
     let _ = execute_record_mint(&mock_contract_context(bob), &mut state, &record_mint);
@@ -711,7 +715,7 @@ fn record_already_minted_on_record_mint() {
     let record_mint = RecordMintMsg {
         token_id: string_to_bytes("name"),
         class: RecordClass::Wallet {},
-        data: "some data".to_string(),
+        data: string_to_bytes("some data"),
     };
 
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint);
@@ -748,14 +752,14 @@ fn proper_record_update() {
     let record_mint_msg = RecordMintMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "data".to_string(),
+        data: string_to_bytes("data"),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_update_msg = RecordUpdateMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "new data".to_string(),
+        data: string_to_bytes("new data"),
     };
 
     let _ = execute_record_update(
@@ -764,11 +768,15 @@ fn proper_record_update() {
         &record_update_msg,
     );
 
-    let record = state.record_info(token_id, &record_class).unwrap();
+    let record = state
+        .domain_info(token_id)
+        .unwrap()
+        .record_info(&record_class)
+        .unwrap();
     assert_eq!(
         *record,
         Record {
-            data: "new data".to_string(),
+            data: string_to_bytes("new data"),
         }
     );
 }
@@ -794,7 +802,7 @@ fn when_record_does_not_exist_record_update_fails() {
     let record_update_msg = RecordUpdateMsg {
         token_id: string_to_bytes("name"),
         class: RecordClass::Twitter {},
-        data: "new data".to_string(),
+        data: string_to_bytes("new data"),
     };
 
     let _ = execute_record_update(
@@ -836,23 +844,27 @@ fn when_record_is_not_owned_record_update_fails() {
     let record_mint_msg = RecordMintMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "data".to_string(),
+        data: string_to_bytes("data"),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
     let record_update_msg = RecordUpdateMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "new data".to_string(),
+        data: string_to_bytes("new data"),
     };
 
     let _ = execute_record_update(&mock_contract_context(bob), &mut state, &record_update_msg);
 
-    let record = state.record_info(token_id, &record_class).unwrap();
+    let record = state
+        .domain_info(token_id)
+        .unwrap()
+        .record_info(&record_class)
+        .unwrap();
     assert_eq!(
         *record,
         Record {
-            data: "new data".to_string(),
+            data: string_to_bytes("new data"),
         }
     );
 }
@@ -887,7 +899,7 @@ fn proper_record_delete() {
     let record_mint_msg = RecordMintMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "data".to_string(),
+        data: string_to_bytes("data"),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
@@ -896,13 +908,16 @@ fn proper_record_delete() {
         class: record_class,
     };
 
-    let _ = execute_record_delete(
+    let _ = execute_record_remove(
         &mock_contract_context(alice),
         &mut state,
         &record_delete_msg,
     );
 
-    let record = state.record_info(token_id, &record_class);
+    let record = state
+        .domain_info(token_id)
+        .unwrap()
+        .record_info(&record_class);
 
     assert!(record.is_none());
 }
@@ -930,7 +945,7 @@ fn when_record_does_not_exist_record_delete_fails() {
         class: RecordClass::Twitter {},
     };
 
-    let _ = execute_record_delete(
+    let _ = execute_record_remove(
         &mock_contract_context(alice),
         &mut state,
         &record_delete_msg,
@@ -969,7 +984,7 @@ fn when_record_is_not_owned_record_delete_fails() {
     let record_mint_msg = RecordMintMsg {
         token_id: token_id.clone(),
         class: record_class,
-        data: "data".to_string(),
+        data: string_to_bytes("data"),
     };
     let _ = execute_record_mint(&mock_contract_context(alice), &mut state, &record_mint_msg);
 
@@ -978,5 +993,5 @@ fn when_record_is_not_owned_record_delete_fails() {
         class: record_class,
     };
 
-    let _ = execute_record_delete(&mock_contract_context(bob), &mut state, &record_delete_msg);
+    let _ = execute_record_remove(&mock_contract_context(bob), &mut state, &record_delete_msg);
 }

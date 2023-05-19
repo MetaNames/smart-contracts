@@ -7,9 +7,9 @@ use mpc721_hierarchy::{actions as mpc721_actions, msg as mpc721_msg};
 
 use crate::{
     msg::{
-        PnsApproveForAllMsg, PnsApproveMsg, PnsBurnMsg, PnsCheckOwnerMsg, PnsInitMsg, PnsMintMsg, PnsMultiMintMsg,
-        RecordDeleteMsg, RecordMintMsg, RecordUpdateMsg, PnsRevokeForAllMsg, PnsRevokeMsg, PnsSetBaseUriMsg,
-        PnsTransferFromMsg, PnsTransferMsg, PnsUpdateMinterMsg,
+        PnsApproveForAllMsg, PnsApproveMsg, PnsBurnMsg, PnsCheckOwnerMsg, PnsInitMsg, PnsMintMsg,
+        PnsMultiMintMsg, PnsRevokeForAllMsg, PnsRevokeMsg, PnsSetBaseUriMsg, PnsTransferFromMsg,
+        PnsTransferMsg, PnsUpdateMinterMsg, RecordDeleteMsg, RecordMintMsg, RecordUpdateMsg,
     },
     state::{Domain, PartisiaNameSystemState},
     ContractError,
@@ -34,11 +34,10 @@ pub fn execute_init(
         minter: msg.minter,
     };
 
-    let (mpc721, mut events) = mpc721_actions::execute_init(&ctx, &mpc721_msg);
+    let (mpc721, mut events) = mpc721_actions::execute_init(ctx, &mpc721_msg);
     let mut state = PartisiaNameSystemState {
         mpc721,
         domains: BTreeMap::new(),
-        records: BTreeMap::new(),
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     };
 
@@ -48,11 +47,11 @@ pub fn execute_init(
             token_id: tld.clone(),
             to: msg.minter,
             token_uri: msg.tld_uri.clone(),
-            parent_id: None
+            parent_id: None,
         };
         let ctx_with_sender = ContractContext {
-            sender: msg.minter.clone(),
-            ..*ctx.clone()
+            sender: msg.minter,
+            ..*ctx
         };
         mint_events = execute_mint(&ctx_with_sender, &mut state, &mint_msg);
     }
@@ -172,7 +171,9 @@ pub fn execute_mint(
 
         let parent = state.domains.get(parent_id).unwrap();
         assert!(
-            state.mpc721.allowed_to_manage(&ctx.sender, parent.token_id),
+            state
+                .mpc721
+                .is_allowed_to_manage(&ctx.sender, parent.token_id),
             "{}",
             ContractError::Unauthorized
         );
@@ -206,6 +207,8 @@ pub fn execute_mint(
         msg.token_id.clone(),
         Domain {
             token_id: new_token_id,
+            records: BTreeMap::new(),
+            parent_id: msg.parent_id.clone(),
         },
     );
 
@@ -371,20 +374,22 @@ pub fn execute_record_mint(
     state: &mut PartisiaNameSystemState,
     msg: &RecordMintMsg,
 ) -> Vec<EventGroup> {
-    assert!(
-        state.is_minted(&msg.token_id),
-        "{}",
-        ContractError::NotFound
-    );
+    let domain = match state.domain_info(&msg.token_id) {
+        Some(domain) => domain,
+        None => panic!("{}", ContractError::NotFound),
+    };
 
-    let domain = state.domain_info(&msg.token_id).unwrap();
     assert!(
-        state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
+        state
+            .mpc721
+            .is_allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.mint_record(&msg.token_id, &msg.class, &msg.data);
+    state
+        .mut_domain_info(&msg.token_id)
+        .mint_record(&msg.class, &msg.data);
 
     vec![]
 }
@@ -398,26 +403,28 @@ pub fn execute_record_update(
     state: &mut PartisiaNameSystemState,
     msg: &RecordUpdateMsg,
 ) -> Vec<EventGroup> {
+    let domain = match state.domain_info(&msg.token_id) {
+        Some(domain) => domain,
+        None => panic!("{}", ContractError::NotFound),
+    };
+
     assert!(
-        state.is_minted(&msg.token_id),
+        domain.is_record_minted(&msg.class),
         "{}",
         ContractError::NotFound
     );
 
     assert!(
-        state.is_record_minted(&msg.token_id, &msg.class),
-        "{}",
-        ContractError::NotFound
-    );
-
-    let domain = state.domain_info(&msg.token_id).unwrap();
-    assert!(
-        state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
+        state
+            .mpc721
+            .is_allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.update_record_data(&msg.token_id, &msg.class, &msg.data);
+    state
+        .mut_domain_info(&msg.token_id)
+        .update_record_data(&msg.class, &msg.data);
 
     vec![]
 }
@@ -426,31 +433,32 @@ pub fn execute_record_update(
 /// Delete a record for a domain
 /// Returns [`Vec<EventGroup>`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
-pub fn execute_record_delete(
+pub fn execute_record_remove(
     ctx: &ContractContext,
     state: &mut PartisiaNameSystemState,
     msg: &RecordDeleteMsg,
 ) -> Vec<EventGroup> {
+    let domain = match state.domain_info(&msg.token_id) {
+        Some(domain) => domain,
+        None => panic!("{}", ContractError::NotFound),
+    };
+
     assert!(
-        state.is_minted(&msg.token_id),
+        domain.is_record_minted(&msg.class),
         "{}",
         ContractError::NotFound
     );
-
     assert!(
-        state.is_record_minted(&msg.token_id, &msg.class),
-        "{}",
-        ContractError::NotFound
-    );
-
-    let domain = state.domain_info(&msg.token_id).unwrap();
-    assert!(
-        state.mpc721.allowed_to_manage(&ctx.sender, domain.token_id),
+        state
+            .mpc721
+            .is_allowed_to_manage(&ctx.sender, domain.token_id),
         "{}",
         ContractError::Unauthorized
     );
 
-    state.delete_record(&msg.token_id, &msg.class);
+    state
+        .mut_domain_info(&msg.token_id)
+        .remove_record(&msg.class);
 
     vec![]
 }

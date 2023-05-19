@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap};
+use std::collections::BTreeMap;
 
 use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
@@ -23,7 +23,7 @@ pub struct PartisiaNameSystemState {
 pub struct Domain {
     pub token_id: u128,
     pub records: BTreeMap<RecordClass, Record>,
-    pub parent: Option<Vec<u8>>,
+    pub parent_id: Option<Vec<u8>>,
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
@@ -111,9 +111,15 @@ impl Domain {
 
 impl PartisiaNameSystemState {
     /// ## Description
-    /// Returns domain info by token id
+    /// Returns an optional domain info given the token id
     pub fn domain_info(&self, domain: &[u8]) -> Option<&Domain> {
         self.domains.get(domain)
+    }
+
+    /// ## Description
+    /// Returns the mutable domain info by token id
+    pub fn mut_domain_info(&mut self, domain: &[u8]) -> &mut Domain {
+        self.domains.get_mut(domain).unwrap()
     }
 
     /// ## Description
@@ -125,12 +131,13 @@ impl PartisiaNameSystemState {
     /// ## Description
     /// Returns token info by domain
     pub fn token_info(&self, domain: &[u8]) -> Option<&TokenInfo> {
-        let domain = self.domain_info(domain);
-        if domain.is_none() {
-            return None;
+        match self.domain_info(domain) {
+            Some(domain) => {
+                let token_id = domain.token_id;
+                self.mpc721.token_info(token_id)
+            }
+            None => None,
         }
-
-        self.mpc721.token_info(domain.unwrap().token_id)
     }
 
     /// ## Description
@@ -142,13 +149,13 @@ impl PartisiaNameSystemState {
     /// ## Description
     /// Returns boolean if account is allowed to manage domain
     /// ## Params
-    pub fn allowed_to_manage(&self, account: &Address, domain: &[u8]) -> bool {
-        let domain = self.domain_info(domain);
-        if domain.is_none() {
-            return false;
+    pub fn is_allowed_to_manage(&self, account: &Address, domain: &[u8]) -> bool {
+        match self.domain_info(domain) {
+            Some(domain) => {
+                let token_id = domain.token_id;
+                self.mpc721.is_allowed_to_manage(account, token_id)
+            }
+            None => false,
         }
-
-        self.mpc721
-            .allowed_to_manage(account, domain.unwrap().token_id)
     }
 }

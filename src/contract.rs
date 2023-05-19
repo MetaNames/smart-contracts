@@ -6,7 +6,7 @@ use pbc_contract_common::{address::Address, context::ContractContext, events::Ev
 use partisia_name_system::{
     actions::{
         execute_approve, execute_approve_for_all, execute_burn, execute_init, execute_mint,
-        execute_multi_mint, execute_ownership_check, execute_record_delete, execute_record_mint,
+        execute_multi_mint, execute_ownership_check, execute_record_remove, execute_record_mint,
         execute_record_update, execute_revoke, execute_revoke_for_all, execute_set_base_uri,
         execute_transfer, execute_transfer_from, execute_update_minter,
     },
@@ -246,7 +246,7 @@ pub fn delete_record(
     class: RecordClass,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let events = execute_record_delete(&ctx, &mut state.pns, &RecordDeleteMsg { token_id, class });
+    let events = execute_record_remove(&ctx, &mut state.pns, &RecordDeleteMsg { token_id, class });
 
     (state, events)
 }
