@@ -32,9 +32,36 @@ jobs:
         run: cargo audit
 
 
+  code-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Setup caching dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo clippy
+        run: cargo install cargo-clippy
+
+      - name: Fetch dependencies
+        run: cargo fetch
+
+      - name: Run clippy
+        run: cargo clippy
+
+
   test:
     runs-on: ubuntu-latest
-    needs: audit
+    needs:
+      - audit
+      - code-analysis
 
     steps:
       - uses: actions/checkout@v3
@@ -60,11 +87,13 @@ jobs:
 
   wasm-check:
     runs-on: ubuntu-latest
-    needs: audit
-    
+    needs:
+      - audit
+      - code-analysis
+
     steps:
-      - uses: actions/checkout@v3 
-    
+      - uses: actions/checkout@v3
+
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
