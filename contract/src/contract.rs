@@ -1,11 +1,19 @@
-use crate::{msg::InitMsg, state::ContractState};
+use crate::{
+    msg::{InitMsg, MPC20TransferFromMsg, MintMsg},
+    state::ContractState,
+};
 
 use contract_version_base::state::ContractVersionBase;
-use pbc_contract_common::{address::Address, context::ContractContext, events::EventGroup};
+use pbc_contract_common::{
+    address::Address,
+    context::{CallbackContext, ContractContext},
+    events::EventGroup,
+};
 
 use nft::{actions as nft_actions, msg as nft_msg};
 
 use partisia_name_system::{actions as pns_actions, msg as pns_msg, state::RecordClass};
+use utils::events::{assert_callback_success, build_msg_callback, IntoShortnameRPCEvent};
 
 use crate::ContractError;
 
@@ -14,6 +22,17 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
+    assert!(
+        msg.payable_mint_info.token.is_some(),
+        "{}",
+        ContractError::PayableTokenNotSet
+    );
+    assert!(
+        msg.payable_mint_info.amount > 0,
+        "{}",
+        ContractError::PayableAmountNegative
+    );
+
     let pns = pns_actions::execute_init(&ctx);
     let nft = nft_actions::execute_init(
         &ctx,
@@ -26,6 +45,7 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
     let state = ContractState {
         pns,
         nft,
+        payable_mint_info: msg.payable_mint_info,
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     };
 
@@ -111,6 +131,53 @@ pub fn mint(
     token_uri: Option<String>,
     parent_id: Option<String>,
 ) -> (ContractState, Vec<EventGroup>) {
+    // Basic validations
+    assert!(!state.pns.is_minted(&domain), "{}", ContractError::Minted);
+
+    pns_actions::validate_domain(&domain);
+
+    let mut payout_transfer_events = EventGroup::builder();
+
+    MPC20TransferFromMsg {
+        from: to,
+        to: ctx.contract_address,
+        amount: state.payable_mint_info.amount,
+    }
+    .as_interaction(
+        &mut payout_transfer_events,
+        &state.payable_mint_info.token.unwrap(),
+    );
+
+    build_msg_callback(
+        &mut payout_transfer_events,
+        0x30,
+        &MintMsg {
+            domain,
+            to,
+            token_uri,
+            parent_id,
+        },
+    );
+
+    (state, vec![payout_transfer_events.build()])
+}
+
+#[callback(shortname = 0x30)]
+pub fn on_mint_callback(
+    ctx: ContractContext,
+    callback_ctx: CallbackContext,
+    state: ContractState,
+    msg: MintMsg,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_callback_success(&callback_ctx);
+
+    // TODO: Migrate below to actions
+
+    let domain = msg.domain;
+    let to = msg.to;
+    let token_uri = msg.token_uri;
+    let parent_id = msg.parent_id;
+
     assert!(!state.pns.is_minted(&domain), "{}", ContractError::Minted);
 
     pns_actions::validate_domain(&domain);
