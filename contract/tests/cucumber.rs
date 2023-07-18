@@ -4,12 +4,13 @@ use cucumber::{given, then, when, World};
 use meta_names_contract::{
     contract::{approve_domain, initialize, mint},
     msg::InitMsg,
-    state::ContractState,
+    state::{ContractState, PayableMintInfo},
 };
 use utils::tests::{mock_address, mock_contract_context};
 
 const ALICE_ADDRESS: u8 = 1;
 const BOB_ADDRESS: u8 = 2;
+const PAYABLE_TOKEN_ADDRESS: u8 = 10;
 
 #[derive(Debug, Default, World)]
 pub struct ContractWorld {
@@ -30,6 +31,10 @@ fn meta_names_contract(world: &mut ContractWorld) {
         name: "Meta Names".to_string(),
         symbol: "META".to_string(),
         uri_template: "metanames.io".to_string(),
+        payable_mint_info: PayableMintInfo {
+            token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
+            amount: 100,
+        },
     };
 
     let (state, _) = initialize(mock_contract_context(ALICE_ADDRESS), msg);
