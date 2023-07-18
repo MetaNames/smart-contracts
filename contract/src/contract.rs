@@ -1,4 +1,5 @@
 use crate::{
+    actions::action_mint,
     msg::{InitMsg, MPC20TransferFromMsg, MintMsg},
     state::ContractState,
 };
@@ -171,60 +172,7 @@ pub fn on_mint_callback(
 ) -> (ContractState, Vec<EventGroup>) {
     assert_callback_success(&callback_ctx);
 
-    // TODO: Migrate below to actions
-
-    let domain = msg.domain;
-    let to = msg.to;
-    let token_uri = msg.token_uri;
-    let parent_id = msg.parent_id;
-
-    assert!(!state.pns.is_minted(&domain), "{}", ContractError::Minted);
-
-    pns_actions::validate_domain(&domain);
-
-    // Parent validations
-    if let Some(parent_id) = parent_id.clone() {
-        let parent = state.pns.get_domain(&parent_id);
-        assert!(parent.is_some(), "{}", ContractError::DomainNotMinted);
-
-        pns_actions::validate_domain_with_parent(&domain, &parent_id);
-
-        let parent_token_id = parent.unwrap().token_id;
-        assert!(
-            state.nft.is_approved_or_owner(ctx.sender, parent_token_id),
-            "{}",
-            ContractError::Unauthorized
-        );
-    }
-
-    let mut state = state;
-    let token_id = state.nft.get_next_token_id();
-    let nft_events = nft_actions::execute_mint(
-        &ctx,
-        &mut state.nft,
-        &nft_msg::NFTMintMsg {
-            to,
-            token_id,
-            token_uri,
-        },
-    );
-
-    let pns_events = pns_actions::execute_mint(
-        &ctx,
-        &mut state.pns,
-        &pns_msg::PnsMintMsg {
-            domain,
-            parent_id,
-            token_id,
-        },
-    );
-
-    let events = nft_events
-        .into_iter()
-        .chain(pns_events.into_iter())
-        .collect();
-
-    (state, events)
+    action_mint(ctx, state, msg.domain, msg.to, msg.token_uri, msg.parent_id)
 }
 
 #[action(shortname = 0x21)]
