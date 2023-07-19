@@ -34,7 +34,7 @@ pub struct MintMsg {
 }
 
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
-#[rpc_msg(action = 0x05)]
+#[rpc_msg(action = 0x03)]
 pub struct MPC20TransferFromMsg {
     /// token owner
     pub from: Address,
