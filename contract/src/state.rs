@@ -1,4 +1,5 @@
 use contract_version_base::state::ContractVersionBase;
+use create_type_spec_derive::CreateTypeSpec;
 use nft::state::NFTContractState;
 use partisia_name_system::state::PartisiaNameSystemState;
 use pbc_contract_common::address::Address;
@@ -17,7 +18,7 @@ pub struct ContractState {
     pub version: ContractVersionBase,
 }
 
-#[derive(ReadWriteRPC, ReadWriteState, PartialEq, Eq, Default, Clone, Debug)]
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct PayableMintInfo {
     // It's required but need to be optional for Default trait to work
     pub token: Option<Address>,
