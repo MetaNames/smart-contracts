@@ -1,6 +1,6 @@
 use crate::{
-    actions::action_mint,
-    msg::{InitMsg, MPC20TransferFromMsg, MintMsg},
+    actions::{action_build_mint_callback, action_mint},
+    msg::{InitMsg, MintMsg},
     state::ContractState,
 };
 
@@ -14,7 +14,7 @@ use pbc_contract_common::{
 use nft::{actions as nft_actions, msg as nft_msg};
 
 use partisia_name_system::{actions as pns_actions, msg as pns_msg, state::RecordClass};
-use utils::events::{assert_callback_success, build_msg_callback, IntoShortnameRPCEvent};
+use utils::events::assert_callback_success;
 
 use crate::ContractError;
 
@@ -137,30 +137,19 @@ pub fn mint(
 
     pns_actions::validate_domain(&domain);
 
-    let mut payout_transfer_events = EventGroup::builder();
-
-    MPC20TransferFromMsg {
-        from: to,
-        to: ctx.contract_address,
-        amount: state.payable_mint_info.amount,
-    }
-    .as_interaction(
-        &mut payout_transfer_events,
-        &state.payable_mint_info.token.unwrap(),
-    );
-
-    build_msg_callback(
-        &mut payout_transfer_events,
-        0x30,
+    let payout_transfer_events = action_build_mint_callback(
+        ctx,
+        state.payable_mint_info,
         &MintMsg {
             domain,
             to,
             token_uri,
             parent_id,
         },
+        0x30,
     );
 
-    (state, vec![payout_transfer_events.build()])
+    (state, payout_transfer_events)
 }
 
 #[callback(shortname = 0x30)]

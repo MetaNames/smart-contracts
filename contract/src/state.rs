@@ -18,7 +18,9 @@ pub struct ContractState {
     pub version: ContractVersionBase,
 }
 
-#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+#[derive(
+    ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Copy, Clone, Debug,
+)]
 pub struct PayableMintInfo {
     // It's required but need to be optional for Default trait to work
     pub token: Option<Address>,

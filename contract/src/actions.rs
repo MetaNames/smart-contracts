@@ -2,7 +2,12 @@ use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg};
 use pbc_contract_common::{address::Address, context::ContractContext, events::EventGroup};
 
-use crate::{state::ContractState, ContractError};
+use crate::{
+    msg::{MPC20TransferFromMsg, MintMsg},
+    state::{ContractState, PayableMintInfo},
+    ContractError,
+};
+use utils::events::{build_msg_callback, IntoShortnameRPCEvent};
 
 /// Action to mint contract
 pub fn action_mint(
@@ -58,4 +63,27 @@ pub fn action_mint(
         .collect();
 
     (state, events)
+}
+
+pub fn action_build_mint_callback(
+    ctx: ContractContext,
+    payable_mint_info: PayableMintInfo,
+    mint_msg: &MintMsg,
+    callback_byte: u32,
+) -> Vec<EventGroup> {
+    let mut payout_transfer_events = EventGroup::builder();
+
+    MPC20TransferFromMsg {
+        from: mint_msg.to,
+        to: ctx.contract_address,
+        amount: payable_mint_info.amount,
+    }
+    .as_interaction(
+        &mut payout_transfer_events,
+        &payable_mint_info.token.unwrap(),
+    );
+
+    build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
+
+    vec![payout_transfer_events.build()]
 }
