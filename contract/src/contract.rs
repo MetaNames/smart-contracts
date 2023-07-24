@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::{
     actions::{action_build_mint_callback, action_mint},
     msg::{InitMsg, MintMsg},
@@ -137,19 +139,38 @@ pub fn mint(
 
     pns_actions::validate_domain(&domain);
 
-    let payout_transfer_events = action_build_mint_callback(
-        ctx,
-        state.payable_mint_info,
-        &MintMsg {
-            domain,
-            to,
-            token_uri,
-            parent_id,
-        },
-        0x30,
-    );
+    let mut events = vec![];
+    let mut mut_state = state;
 
-    (state, payout_transfer_events)
+    match parent_id {
+        Some(_) => {
+            // Skip minting fees since this is a subdomain
+            let (new_state, mint_events) =
+                action_mint(ctx, mut_state, domain, to, token_uri, parent_id);
+
+            mut_state = new_state;
+
+            events.extend(mint_events);
+        }
+
+        None => {
+            let payout_transfer_events = action_build_mint_callback(
+                ctx,
+                mut_state.payable_mint_info,
+                &MintMsg {
+                    domain,
+                    to,
+                    token_uri,
+                    parent_id,
+                },
+                0x30,
+            );
+
+            events.extend(payout_transfer_events);
+        }
+    }
+
+    (mut_state, events)
 }
 
 #[callback(shortname = 0x30)]
