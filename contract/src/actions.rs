@@ -15,8 +15,6 @@ pub fn action_mint(
 ) -> (ContractState, Vec<EventGroup>) {
     assert!(!state.pns.is_minted(&domain), "{}", ContractError::Minted);
 
-    pns_actions::validate_domain(&domain);
-
     // Parent validations
     if let Some(parent_id) = parent_id.clone() {
         let parent = state.pns.get_domain(&parent_id);
