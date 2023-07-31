@@ -40,8 +40,6 @@ fn meta_names_contract(world: &mut ContractWorld) {
     world.state = state;
 }
 
-// TODO: Since cannot test minting with fees, add a given step having already a domain minted
-
 #[given(expr = "{word} minted '{word}' domain without a parent")]
 #[when(expr = "{word} mints '{word}' domain without fees and a parent")]
 fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
