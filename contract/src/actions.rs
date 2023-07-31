@@ -78,7 +78,7 @@ pub fn action_build_mint_callback(
     MPC20TransferFromMsg {
         from: mint_msg.to,
         to: ctx.contract_address,
-        amount: payable_mint_info.amount,
+        amount: calculate_mint_fees(mint_msg.domain.as_str()),
     }
     .as_interaction(
         &mut payout_transfer_events,
@@ -88,4 +88,15 @@ pub fn action_build_mint_callback(
     build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
 
     vec![payout_transfer_events.build()]
+}
+
+pub fn calculate_mint_fees(domain_name: &str) -> u128 {
+    let length = domain_name.len();
+    match length {
+        1 => 200,
+        2 => 150,
+        3 => 100,
+        4 => 50,
+        _ => 5,
+    }
 }
