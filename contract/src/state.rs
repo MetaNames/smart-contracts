@@ -24,6 +24,4 @@ pub struct ContractState {
 pub struct PayableMintInfo {
     // It's required but need to be optional for Default trait to work
     pub token: Option<Address>,
-    // TODO: Calculate amount dynamically
-    pub amount: u128,
 }

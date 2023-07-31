@@ -33,7 +33,6 @@ fn meta_names_contract(world: &mut ContractWorld) {
         uri_template: "metanames.io".to_string(),
         payable_mint_info: PayableMintInfo {
             token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
-            amount: 100,
         },
     };
 
