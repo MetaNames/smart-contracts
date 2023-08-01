@@ -77,7 +77,7 @@ pub fn action_build_mint_callback(
 
     MPC20TransferFromMsg {
         from: mint_msg.to,
-        to: ctx.contract_address,
+        to: payable_mint_info.receiver.unwrap(),
         amount: calculate_mint_fees(mint_msg.domain.as_str()),
     }
     .as_interaction(

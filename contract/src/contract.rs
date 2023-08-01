@@ -30,6 +30,11 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
         "{}",
         ContractError::PayableTokenNotSet
     );
+    assert!(
+        msg.payable_mint_info.receiver.is_some(),
+        "{}",
+        ContractError::PayableReceiverNotSet
+    );
 
     let pns = pns_actions::execute_init(&ctx);
     let nft = nft_actions::execute_init(

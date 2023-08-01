@@ -16,6 +16,6 @@ pub enum ContractError {
     #[error("Payable token is not set")]
     PayableTokenNotSet,
 
-    #[error("Payable amount must be positive")]
-    PayableAmountNegative,
+    #[error("Payable receiver is not set")]
+    PayableReceiverNotSet,
 }
