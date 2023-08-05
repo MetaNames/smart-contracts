@@ -48,8 +48,10 @@ impl AccessControlBaseState {
     /// * **role** is an object of type [`u8`]
     ///
     /// * **account** is an object of type [`Address`]
-    pub fn setup_role(&mut self, role: u8, account: &Address) {
-        self.set_role(role, account);
+    pub fn setup_role(&mut self, role: u8, accounts: &Vec<Address>) {
+        for account in accounts {
+            self.set_role(role, account);
+        }
     }
 
     /// ## Description

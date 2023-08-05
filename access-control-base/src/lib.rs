@@ -1,7 +1,10 @@
 #![allow(unused_variables)]
 
 mod error;
-pub mod state;
+mod msg;
+mod state;
+
+pub mod actions;
 
 pub use crate::error::ContractError;
 
