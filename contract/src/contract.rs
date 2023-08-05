@@ -15,6 +15,7 @@ use pbc_contract_common::{
 
 use nft::{actions as nft_actions, msg as nft_msg};
 
+use access_control::{actions as ac_actions, msg as ac_msg};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg, state::RecordClass};
 use utils::events::assert_callback_success;
 
@@ -45,10 +46,15 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
             uri_template: msg.uri_template,
         },
     );
+    let access_control = ac_actions::execute_init(&ac_msg::ACInitMsg {
+        admin_addresses: msg.admin_addresses,
+    });
+
     let state = ContractState {
-        pns,
+        access_control,
         nft,
         payable_mint_info: msg.payable_mint_info,
+        pns,
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     };
 
