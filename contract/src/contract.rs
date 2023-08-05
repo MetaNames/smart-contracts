@@ -23,7 +23,7 @@ use crate::ContractError;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const ADMIN_ROLE: u8 = DEFAULT_ADMIN_ROLE;
+pub const ADMIN_ROLE: u8 = DEFAULT_ADMIN_ROLE;
 
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
@@ -248,4 +248,34 @@ pub fn delete_record(
     );
 
     (state, events)
+}
+
+#[action(shortname = 0x24)]
+pub fn update_admin_address(
+    ctx: ContractContext,
+    mut state: ContractState,
+    admin: Address,
+    active: bool,
+) -> (ContractState, Vec<EventGroup>) {
+    if active {
+        ac_actions::execute_grant_role(
+            &ctx,
+            &mut state.access_control,
+            &ac_msg::ACRoleMsg {
+                role: ADMIN_ROLE,
+                account: admin,
+            },
+        );
+    } else {
+        ac_actions::execute_revoke_role(
+            &ctx,
+            &mut state.access_control,
+            &ac_msg::ACRoleMsg {
+                role: ADMIN_ROLE,
+                account: admin,
+            },
+        );
+    }
+
+    (state, vec![])
 }
