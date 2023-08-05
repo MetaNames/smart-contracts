@@ -6,8 +6,6 @@ use pbc_contract_common::{
 };
 use read_write_state_derive::ReadWriteState;
 
-use crate::ContractError;
-
 pub const DEFAULT_ADMIN_ROLE: u8 = 0x00;
 
 /// ## Description
