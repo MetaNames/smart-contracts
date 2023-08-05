@@ -912,6 +912,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 name = "meta-names-contract"
 version = "0.0.1"
 dependencies = [
+ "access-control",
  "contract-version-base",
  "create_type_spec_derive",
  "cucumber",
