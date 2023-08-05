@@ -150,7 +150,7 @@ fn domain_is_not_minted(world: &mut ContractWorld, domain: String) {
     assert_eq!(domain, None);
 }
 
-#[then(regex = r"\w+ user (is|is not) an admin")]
+#[then(regex = r"(\w+) user (is|is not) an admin")]
 fn user_is_admin(world: &mut ContractWorld, user: String, is: String) {
     let is_admin = world
         .state
