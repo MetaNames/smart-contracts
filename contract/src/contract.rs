@@ -151,7 +151,6 @@ pub fn mint(
 
     let is_admin = mut_state.access_control.has_role(ADMIN_ROLE, &ctx.sender);
     if parent_id.is_some() || is_admin {
-        // Skip minting fees since this is a subdomain
         let (new_state, mint_events) =
             action_mint(ctx, mut_state, domain, to, token_uri, parent_id);
 
