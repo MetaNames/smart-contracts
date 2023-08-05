@@ -159,6 +159,11 @@ pub fn mint(
 
         events.extend(mint_events);
     } else {
+        let is_whitelisted = mut_state
+            .access_control
+            .has_role(UserRole::Whitelist {} as u8, &ctx.sender);
+        assert!(is_whitelisted, "{}", ContractError::UserNotWhitelisted);
+
         let payout_transfer_events = action_build_mint_callback(
             ctx,
             mut_state.payable_mint_info,
