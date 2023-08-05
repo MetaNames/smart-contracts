@@ -15,7 +15,7 @@ use pbc_contract_common::{
 
 use nft::{actions as nft_actions, msg as nft_msg};
 
-use access_control::{actions as ac_actions, msg as ac_msg};
+use access_control::{actions as ac_actions, msg as ac_msg, state::DEFAULT_ADMIN_ROLE};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg, state::RecordClass};
 use utils::events::assert_callback_success;
 
@@ -23,6 +23,7 @@ use crate::ContractError;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const ADMIN_ROLE: u8 = DEFAULT_ADMIN_ROLE;
 
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
@@ -148,32 +149,29 @@ pub fn mint(
     let mut events = vec![];
     let mut mut_state = state;
 
-    match parent_id {
-        Some(_) => {
-            // Skip minting fees since this is a subdomain
-            let (new_state, mint_events) =
-                action_mint(ctx, mut_state, domain, to, token_uri, parent_id);
+    let is_admin = mut_state.access_control.has_role(ADMIN_ROLE, &ctx.sender);
+    if parent_id.is_some() || is_admin {
+        // Skip minting fees since this is a subdomain
+        let (new_state, mint_events) =
+            action_mint(ctx, mut_state, domain, to, token_uri, parent_id);
 
-            mut_state = new_state;
+        mut_state = new_state;
 
-            events.extend(mint_events);
-        }
+        events.extend(mint_events);
+    } else {
+        let payout_transfer_events = action_build_mint_callback(
+            ctx,
+            mut_state.payable_mint_info,
+            &MintMsg {
+                domain,
+                to,
+                token_uri,
+                parent_id,
+            },
+            0x30,
+        );
 
-        None => {
-            let payout_transfer_events = action_build_mint_callback(
-                ctx,
-                mut_state.payable_mint_info,
-                &MintMsg {
-                    domain,
-                    to,
-                    token_uri,
-                    parent_id,
-                },
-                0x30,
-            );
-
-            events.extend(payout_transfer_events);
-        }
+        events.extend(payout_transfer_events);
     }
 
     (mut_state, events)
