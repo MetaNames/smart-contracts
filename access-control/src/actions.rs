@@ -19,7 +19,7 @@ pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
 /// Grants specified tole to specified account
 /// Throws error if caller is not admin of specified role
 pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
-    assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
+    execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
     state.set_role(msg.role, &msg.account);
 }
 
@@ -27,7 +27,7 @@ pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState,
 /// Revokes specified tole from specified account
 /// Throws error if caller is not admin of specified role
 pub fn execute_revoke_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
-    assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
+    execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
     state.revoke_role(msg.role, &msg.account);
 }
 
@@ -39,13 +39,13 @@ pub fn execute_set_role_admin(
     state: &mut AccessControlState,
     msg: &ACSetAdminRoleMsg,
 ) {
-    assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
+    execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
     state.set_role_admin(msg.role, msg.new_admin_role);
 }
 
 /// ## Description
 /// Validates that only specified role member can have access
-pub fn assert_only_role(state: &AccessControlState, role: u8, ctx: &ContractContext) {
+pub fn execute_assert_only_role(state: &AccessControlState, role: u8, ctx: &ContractContext) {
     assert!(
         state.has_role(role, &ctx.sender),
         "{}",

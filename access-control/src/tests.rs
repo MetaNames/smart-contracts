@@ -1,7 +1,7 @@
 use utils::tests::{mock_address, mock_contract_context};
 
 use crate::{
-    actions::{assert_only_role, execute_grant_role, execute_revoke_role},
+    actions::{execute_assert_only_role, execute_grant_role, execute_revoke_role},
     msg::ACRoleMsg,
     state::{AccessControlState, DEFAULT_ADMIN_ROLE},
 };
@@ -41,7 +41,7 @@ fn proper_access_control() {
 
     assert_eq!(access_control.get_role_admin(ROLE_B), Some(0x00));
 
-    assert_only_role(&access_control, ROLE_B, &mock_contract_context(3u8));
+    execute_assert_only_role(&access_control, ROLE_B, &mock_contract_context(3u8));
 
     assert!(access_control.has_role(ROLE_B, &jack));
     execute_revoke_role(
@@ -72,5 +72,5 @@ fn test_role_mismatch() {
 
     access_control.setup_role(DEFAULT_ADMIN_ROLE, &vec![jack]);
 
-    assert_only_role(&access_control, ROLE_A, &mock_contract_context(3u8));
+    execute_assert_only_role(&access_control, ROLE_A, &mock_contract_context(3u8));
 }
