@@ -4,7 +4,7 @@ resolver = "2"
 members = [
   "contract",
   "contract-version-base",
-  "access-control-base",
+  "access-control",
   "nft",
   "partisia-name-system",
   "rpc-msg-derive",

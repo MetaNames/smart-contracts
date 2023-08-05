@@ -1,6 +1,6 @@
 use utils::tests::{mock_address, mock_contract_context};
 
-use crate::state::{AccessControlBaseState, DEFAULT_ADMIN_ROLE};
+use crate::state::{AccessControlState, DEFAULT_ADMIN_ROLE};
 
 const ROLE_A: u8 = 0x02;
 const ROLE_B: u8 = 0x03;
@@ -11,7 +11,7 @@ fn proper_access_control() {
     let bob = mock_address(2u8);
     let jack = mock_address(3u8);
 
-    let mut access_control = AccessControlBaseState::default();
+    let mut access_control = AccessControlState::default();
 
     assert!(!access_control.has_role(ROLE_A, &alice));
     assert_eq!(access_control.get_role_admin(ROLE_A), None);
@@ -50,7 +50,7 @@ fn proper_access_control() {
 fn test_role_mismatch() {
     let jack = mock_address(3u8);
 
-    let mut access_control = AccessControlBaseState::default();
+    let mut access_control = AccessControlState::default();
 
     access_control.setup_role(DEFAULT_ADMIN_ROLE, &jack);
 

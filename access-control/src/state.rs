@@ -13,7 +13,7 @@ pub const DEFAULT_ADMIN_ROLE: u8 = 0x00;
 /// ## Description
 /// This structure describes access control extension state
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug, Default)]
-pub struct AccessControlBaseState {
+pub struct AccessControlState {
     /// configured roles
     pub roles: SortedVecMap<u8, Role>,
 }
@@ -28,7 +28,7 @@ pub struct Role {
     pub members: Vec<Address>,
 }
 
-impl AccessControlBaseState {
+impl AccessControlState {
     /// ## Description
     /// Grants specified tole to specified account
     /// ## Params

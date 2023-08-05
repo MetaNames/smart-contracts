@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "access-control-base"
+name = "access-control"
 version = "1.1.0"
 dependencies = [
  "create_type_spec_derive",
