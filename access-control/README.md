@@ -3,28 +3,30 @@
 Crate that provides role based access control mechanism,
 where there is an account (role member) that can be granted exclusive access to specific functions.
 
-## Base State Actions
+## Command Actions
+All command actions that changes the state.
+Prefer command action instead of state actions
 
-## grant_role
-Grants specified tole to specified account.
+### execute_init
+Setup state
 
-## setup_role
-Setups new role.
+### execute_grant_role
+Grants role to address
 
-## revoke_role
-Removes role access for specified account.
+### execute_revoke_role
+Revoke role to address
 
-## renounce_role
-Removes sender access to role.
+### execute_set_role_admin
+Change admin role of a role
 
-## set_role_admin
-Sets new tole admin for role.
+### execute_assert_only_role
+Check if address has given role
 
-## assert_only_role
-Validates that only specified role member can have access.
+## State Actions
+Please do not use methods starting with `_`
 
-## has_role
+### has_role
 Returns either address has specified role or not.
 
-## get_role_admin
+### get_role_admin
 Returns admin role of specified role.
