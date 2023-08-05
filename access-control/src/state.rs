@@ -30,24 +30,7 @@ pub struct Role {
 
 impl AccessControlState {
     /// ## Description
-    /// Grants specified tole to specified account
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **account** is an object of type [`Address`]
-    ///
-    /// * **ctx** is an object of type [`ContractContext`]
-    pub fn grant_role(&mut self, role: u8, account: &Address, ctx: &ContractContext) {
-        self.assert_only_role(self.get_role_admin(role).unwrap(), ctx);
-        self.set_role(role, account);
-    }
-
-    /// ## Description
     /// Setups new role
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **account** is an object of type [`Address`]
     pub fn setup_role(&mut self, role: u8, accounts: &Vec<Address>) {
         for account in accounts {
             self.set_role(role, account);
@@ -56,15 +39,7 @@ impl AccessControlState {
 
     /// ## Description
     /// Removes role access for specified account
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **account** is an object of type [`Address`]
-    ///
-    /// * **ctx** is an object of type [`ContractContext`]
-    pub fn revoke_role(&mut self, role: u8, account: &Address, ctx: &ContractContext) {
-        self.assert_only_role(self.get_role_admin(role).unwrap(), ctx);
-
+    pub fn revoke_role(&mut self, role: u8, account: &Address) {
         if self.has_role(role, account) {
             let role = self.roles.get_mut(&role).unwrap();
             role.members.retain(|addr| addr != account)
@@ -73,10 +48,6 @@ impl AccessControlState {
 
     /// ## Description
     /// Removes sender access to role
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **ctx** is an object of type [`ContractContext`]
     pub fn renounce_role(&mut self, role: u8, ctx: &ContractContext) {
         if self.has_role(role, &ctx.sender) {
             let role = self.roles.get_mut(&role).unwrap();
@@ -86,10 +57,6 @@ impl AccessControlState {
 
     /// ## Description
     /// Sets new tole admin for role
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **admin_role** is an object of type [`u8`]
     pub fn set_role_admin(&mut self, role: u8, admin_role: u8) {
         match self.roles.get_mut(&role) {
             Some(role) => role.admin_role = admin_role,
@@ -103,20 +70,6 @@ impl AccessControlState {
                 );
             }
         }
-    }
-
-    /// ## Description
-    /// Validates that only specified role member can have access
-    /// ## Params
-    /// * **role** is an object of type [`u8`]
-    ///
-    /// * **ctx** is an object of type [`ContractContext`]
-    pub fn assert_only_role(&self, role: u8, ctx: &ContractContext) {
-        assert!(
-            self.has_role(role, &ctx.sender),
-            "{}",
-            ContractError::MissingRole
-        );
     }
 
     /// ## Description
@@ -139,7 +92,7 @@ impl AccessControlState {
         None
     }
 
-    fn set_role(&mut self, role: u8, account: &Address) {
+    pub fn set_role(&mut self, role: u8, account: &Address) {
         if !self.has_role(role, account) {
             match self.roles.get_mut(&role) {
                 Some(role) => role.members.push(*account),

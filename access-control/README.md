@@ -28,6 +28,3 @@ Returns either address has specified role or not.
 
 ## get_role_admin
 Returns admin role of specified role.
-
-# TODO
-- [ ] Add actions package instead of using state directly
