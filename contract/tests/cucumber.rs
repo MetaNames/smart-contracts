@@ -2,9 +2,11 @@ use std::panic::catch_unwind;
 
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
-    contract::{approve_domain, initialize, mint, on_mint_callback, update_user_role},
+    contract::{
+        approve_domain, initialize, mint, on_mint_callback, update_config, update_user_role,
+    },
     msg::{InitMsg, MintMsg},
-    state::{ContractState, PayableMintInfo, UserRole},
+    state::{ContractConfig, ContractState, PayableMintInfo, UserRole},
 };
 use utils::tests::{mock_address, mock_contract_context, mock_successful_callback_context};
 
@@ -38,6 +40,9 @@ fn get_user_role(role: String) -> UserRole {
 fn meta_names_contract(world: &mut ContractWorld) {
     let msg = InitMsg {
         admin_addresses: vec![mock_address(SYSTEM_ADDRESS)],
+        config: ContractConfig {
+            whitelist_enabled: true,
+        },
         name: "Meta Names".to_string(),
         symbol: "META".to_string(),
         uri_template: "metanames.io".to_string(),
@@ -147,6 +152,30 @@ fn mint_domain_with_parent(
     }
 }
 
+#[when(regex = r"(\w+) updates the config '(.+)' to '(.+)'")]
+fn update_contract_config(world: &mut ContractWorld, user: String, key: String, value: String) {
+    let res = catch_unwind(|| {
+        let new_config = match key.as_str() {
+            "whitelist_enabled" => {
+                let mut new_config = world.state.config.clone();
+                new_config.whitelist_enabled = value == "true";
+                new_config
+            }
+            _ => panic!("Unknown config key"),
+        };
+
+        update_config(
+            mock_contract_context(get_address_for_user(user.clone())),
+            world.state.clone(),
+            new_config,
+        )
+    });
+
+    if let Ok((new_state, _)) = res {
+        world.state = new_state;
+    }
+}
+
 #[then(expr = "{word} owns '{word}' domain")]
 fn owns_the_domain(world: &mut ContractWorld, user: String, domain: String) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
@@ -172,6 +201,16 @@ fn user_is_admin(world: &mut ContractWorld, user: String, has: String, role: Str
     );
 
     assert_eq!(has_role, has == "has");
+}
+
+#[then(regex = "the contract config '(.+)' is '(.+)'")]
+fn contract_config_is(world: &mut ContractWorld, key: String, value: String) {
+    let config = world.state.config.clone();
+
+    match key.as_str() {
+        "whitelist_enabled" => assert_eq!(config.whitelist_enabled, value == "true"),
+        _ => panic!("Unknown config key"),
+    }
 }
 
 // This runs before everything else, so you can setup things here.

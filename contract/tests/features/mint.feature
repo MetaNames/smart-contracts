@@ -15,7 +15,7 @@ Feature: Mint feature
   Scenario: The minting process of a domain without any parent, with a user without the whitelist role, fails
     Given a meta names contract
     When Alice mints 'meta.name' domain without a parent
-    Then 'meta.name' is not minted
+    Then 'meta.name' domain is not minted
 
   Scenario: The mint with the owned parent happens properly
     Given a meta names contract

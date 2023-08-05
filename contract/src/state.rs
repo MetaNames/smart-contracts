@@ -18,6 +18,7 @@ pub struct ContractState {
     pub payable_mint_info: PayableMintInfo,
     pub pns: PartisiaNameSystemState,
     pub version: ContractVersionBase,
+    pub config: ContractConfig,
 }
 
 #[derive(
@@ -36,4 +37,9 @@ pub enum UserRole {
     Admin {},
     #[discriminant(1)]
     Whitelist {},
+}
+
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+pub struct ContractConfig {
+    pub whitelist_enabled: bool,
 }

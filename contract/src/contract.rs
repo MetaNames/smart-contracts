@@ -3,7 +3,7 @@ use std::vec;
 use crate::{
     actions::{action_build_mint_callback, action_mint},
     msg::{InitMsg, MintMsg},
-    state::{ContractState, UserRole},
+    state::{ContractConfig, ContractState, UserRole},
 };
 
 use contract_version_base::state::ContractVersionBase;
@@ -52,6 +52,7 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
 
     let state = ContractState {
         access_control,
+        config: msg.config,
         nft,
         payable_mint_info: msg.payable_mint_info,
         pns,
@@ -159,10 +160,12 @@ pub fn mint(
 
         events.extend(mint_events);
     } else {
-        let is_whitelisted = mut_state
-            .access_control
-            .has_role(UserRole::Whitelist {} as u8, &ctx.sender);
-        assert!(is_whitelisted, "{}", ContractError::UserNotWhitelisted);
+        if mut_state.config.whitelist_enabled {
+            let is_whitelisted = mut_state
+                .access_control
+                .has_role(UserRole::Whitelist {} as u8, &ctx.sender);
+            assert!(is_whitelisted, "{}", ContractError::UserNotWhitelisted);
+        }
 
         let payout_transfer_events = action_build_mint_callback(
             ctx,
@@ -282,6 +285,22 @@ pub fn update_user_role(
             },
         );
     }
+
+    (state, vec![])
+}
+
+#[action(shortname = 0x25)]
+pub fn update_config(
+    ctx: ContractContext,
+    mut state: ContractState,
+    config: ContractConfig,
+) -> (ContractState, Vec<EventGroup>) {
+    let is_admin = state
+        .access_control
+        .has_role(UserRole::Admin {} as u8, &ctx.sender);
+    assert!(is_admin, "{}", ContractError::Unauthorized);
+
+    state.config = config;
 
     (state, vec![])
 }
