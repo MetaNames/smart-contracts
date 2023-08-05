@@ -20,12 +20,12 @@ fn proper_access_control() {
     assert!(!access_control.has_role(ROLE_A, &alice));
     assert_eq!(access_control.get_role_admin(ROLE_A), None);
 
-    access_control.setup_role(DEFAULT_ADMIN_ROLE, &vec![alice]);
+    access_control._setup_role(DEFAULT_ADMIN_ROLE, &vec![alice]);
     assert!(!access_control.has_role(ROLE_A, &alice));
     assert!(access_control.has_role(DEFAULT_ADMIN_ROLE, &alice));
 
     assert!(!access_control.has_role(ROLE_B, &bob));
-    access_control.setup_role(ROLE_B, &vec![bob]);
+    access_control._setup_role(ROLE_B, &vec![bob]);
     assert!(access_control.has_role(ROLE_B, &bob));
 
     assert!(!access_control.has_role(ROLE_B, &jack));
@@ -54,12 +54,12 @@ fn proper_access_control() {
     );
     assert!(!access_control.has_role(ROLE_B, &jack));
 
-    access_control.setup_role(ROLE_A, &vec![bob]);
-    access_control.set_role_admin(ROLE_A, ROLE_B);
+    access_control._setup_role(ROLE_A, &vec![bob]);
+    access_control._set_role_admin(ROLE_A, ROLE_B);
 
     assert_eq!(access_control.get_role_admin(ROLE_A), Some(0x03));
 
-    access_control.renounce_role(DEFAULT_ADMIN_ROLE, &mock_contract_context(1u8));
+    access_control._renounce_role(DEFAULT_ADMIN_ROLE, &mock_contract_context(1u8));
     assert!(!access_control.has_role(DEFAULT_ADMIN_ROLE, &alice));
 }
 
@@ -70,7 +70,7 @@ fn test_role_mismatch() {
 
     let mut access_control = AccessControlState::default();
 
-    access_control.setup_role(DEFAULT_ADMIN_ROLE, &vec![jack]);
+    access_control._setup_role(DEFAULT_ADMIN_ROLE, &vec![jack]);
 
     execute_assert_only_role(&access_control, ROLE_A, &mock_contract_context(3u8));
 }

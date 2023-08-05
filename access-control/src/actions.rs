@@ -10,7 +10,7 @@ use crate::{
 /// Initializes access control extension state
 pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
     let mut state = AccessControlState::default();
-    state.setup_role(DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
+    state._setup_role(DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
 
     state
 }
@@ -20,7 +20,7 @@ pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
 /// Throws error if caller is not admin of specified role
 pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
     execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
-    state.set_role(msg.role, &msg.account);
+    state._set_role(msg.role, &msg.account);
 }
 
 /// ## Description
@@ -28,7 +28,7 @@ pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState,
 /// Throws error if caller is not admin of specified role
 pub fn execute_revoke_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
     execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
-    state.revoke_role(msg.role, &msg.account);
+    state._revoke_role(msg.role, &msg.account);
 }
 
 /// ## Description
@@ -40,7 +40,7 @@ pub fn execute_set_role_admin(
     msg: &ACSetAdminRoleMsg,
 ) {
     execute_assert_only_role(state, state.get_role_admin(msg.role).unwrap(), ctx);
-    state.set_role_admin(msg.role, msg.new_admin_role);
+    state._set_role_admin(msg.role, msg.new_admin_role);
 }
 
 /// ## Description
