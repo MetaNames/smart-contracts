@@ -1,4 +1,4 @@
-use pbc_contract_common::{context::ContractContext, sorted_vec_map::SortedVecMap};
+use pbc_contract_common::context::ContractContext;
 
 use crate::{
     msg::{ACInitMsg, ACRoleMsg, ACSetAdminRoleMsg},
@@ -9,9 +9,7 @@ use crate::{
 /// ## Description
 /// Initializes access control extension state
 pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
-    let mut state = AccessControlState {
-        roles: SortedVecMap::new(),
-    };
+    let mut state = AccessControlState::default();
     state.setup_role(DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
 
     state
@@ -47,7 +45,7 @@ pub fn execute_set_role_admin(
 
 /// ## Description
 /// Validates that only specified role member can have access
-fn assert_only_role(state: &AccessControlState, role: u8, ctx: &ContractContext) {
+pub fn assert_only_role(state: &AccessControlState, role: u8, ctx: &ContractContext) {
     assert!(
         state.has_role(role, &ctx.sender),
         "{}",
