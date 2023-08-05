@@ -1,3 +1,5 @@
+use std::vec;
+
 use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::{
     address::Address, context::ContractContext, sorted_vec_map::SortedVecMap,
@@ -23,8 +25,7 @@ pub struct Role {
     /// configured admin role
     pub admin_role: u8,
     /// whitelisted role members
-    // TODO: Refactor to Vec
-    pub members: SortedVecMap<Address, bool>,
+    pub members: Vec<Address>,
 }
 
 impl AccessControlBaseState {
@@ -64,7 +65,7 @@ impl AccessControlBaseState {
 
         if self.has_role(role, account) {
             let role = self.roles.get_mut(&role).unwrap();
-            role.members.remove(account);
+            role.members.retain(|addr| addr != account)
         }
     }
 
@@ -77,7 +78,7 @@ impl AccessControlBaseState {
     pub fn renounce_role(&mut self, role: u8, ctx: &ContractContext) {
         if self.has_role(role, &ctx.sender) {
             let role = self.roles.get_mut(&role).unwrap();
-            role.members.remove(&ctx.sender);
+            role.members.retain(|addr| addr != &ctx.sender)
         }
     }
 
@@ -95,7 +96,7 @@ impl AccessControlBaseState {
                     role,
                     Role {
                         admin_role,
-                        members: SortedVecMap::new(),
+                        members: vec![],
                     },
                 );
             }
@@ -120,7 +121,7 @@ impl AccessControlBaseState {
     /// Returns either address has specified role or not
     pub fn has_role(&self, role: u8, account: &Address) -> bool {
         if let Some(role) = self.roles.get(&role) {
-            return *role.members.get(account).unwrap_or(&false);
+            return role.members.contains(account);
         }
 
         false
@@ -139,15 +140,13 @@ impl AccessControlBaseState {
     fn set_role(&mut self, role: u8, account: &Address) {
         if !self.has_role(role, account) {
             match self.roles.get_mut(&role) {
-                Some(role) => {
-                    role.members.insert(*account, true);
-                }
+                Some(role) => role.members.push(*account),
                 None => {
                     self.roles.insert(
                         role,
                         Role {
                             admin_role: DEFAULT_ADMIN_ROLE,
-                            members: SortedVecMap::from([(*account, true)]),
+                            members: vec![*account],
                         },
                     );
                 }
