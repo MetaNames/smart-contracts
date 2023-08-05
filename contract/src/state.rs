@@ -28,3 +28,12 @@ pub struct PayableMintInfo {
     pub token: Option<Address>,
     pub receiver: Option<Address>,
 }
+
+#[repr(u8)]
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Copy, Clone, Debug)]
+pub enum UserRole {
+    #[discriminant(0)]
+    Admin {},
+    #[discriminant(1)]
+    Whitelist {},
+}

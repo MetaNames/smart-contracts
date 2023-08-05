@@ -2,11 +2,9 @@ use std::panic::catch_unwind;
 
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
-    contract::{
-        approve_domain, initialize, mint, on_mint_callback, update_admin_address, ADMIN_ROLE,
-    },
+    contract::{approve_domain, initialize, mint, on_mint_callback, update_user_role},
     msg::{InitMsg, MintMsg},
-    state::{ContractState, PayableMintInfo},
+    state::{ContractState, PayableMintInfo, UserRole},
 };
 use utils::tests::{mock_address, mock_contract_context, mock_successful_callback_context};
 
@@ -25,6 +23,14 @@ fn get_address_for_user(user: String) -> u8 {
         "Alice" => ALICE_ADDRESS,
         "Bob" => BOB_ADDRESS,
         _ => panic!("Unknown user"),
+    }
+}
+
+fn get_user_role(role: String) -> UserRole {
+    match role.as_str() {
+        "admin" => UserRole::Admin {},
+        "whitelist" => UserRole::Whitelist {},
+        _ => panic!("Unknown role"),
     }
 }
 
@@ -67,19 +73,27 @@ fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
     }
 }
 
-#[given(regex = r"(\w+) user (with) the admin (role)")]
-#[when(regex = r"(\w+) user (grants|denies) the admin role for (\w+) user")]
-fn user_admin_role(world: &mut ContractWorld, admin: String, action: String, user: String) {
+#[given(regex = r"(\w+) user (with) the (\w+) (role)")]
+#[when(regex = r"(\w+) user (grants|denies) the (\w+) role for (\w+) user")]
+fn user_admin_role(
+    world: &mut ContractWorld,
+    admin: String,
+    action: String,
+    role: String,
+    user: String,
+) {
     let res = catch_unwind(|| match action.as_str() {
-        "with" => update_admin_address(
+        "with" => update_user_role(
             mock_contract_context(SYSTEM_ADDRESS),
             world.state.clone(),
+            get_user_role(role),
             mock_address(get_address_for_user(admin)),
             true,
         ),
-        "grants" | "denied" => update_admin_address(
+        "grants" | "denied" => update_user_role(
             mock_contract_context(get_address_for_user(admin)),
             world.state.clone(),
+            get_user_role(role),
             mock_address(get_address_for_user(user)),
             action == "grants",
         ),
@@ -150,14 +164,14 @@ fn domain_is_not_minted(world: &mut ContractWorld, domain: String) {
     assert_eq!(domain, None);
 }
 
-#[then(regex = r"(\w+) user (is|is not) an admin")]
-fn user_is_admin(world: &mut ContractWorld, user: String, is: String) {
-    let is_admin = world
-        .state
-        .access_control
-        .has_role(ADMIN_ROLE, &mock_address(get_address_for_user(user)));
+#[then(regex = r"(\w+) user (has|has not) the (\w+) role")]
+fn user_is_admin(world: &mut ContractWorld, user: String, has: String, role: String) {
+    let has_role = world.state.access_control.has_role(
+        get_user_role(role) as u8,
+        &mock_address(get_address_for_user(user)),
+    );
 
-    assert_eq!(is_admin, is == "is");
+    assert_eq!(has_role, has == "has");
 }
 
 // This runs before everything else, so you can setup things here.
