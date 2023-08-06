@@ -11,6 +11,7 @@ Feature: Mint feature
     And Alice user with the admin role
     When Alice mints 'meta.name' domain without a parent
     Then Alice owns 'meta.name' domain
+    And Alice mint count is 1
 
   Scenario: The minting process of a domain without any parent, with a user without the whitelist role, fails
     Given a meta names contract with 'whitelist' enabled
