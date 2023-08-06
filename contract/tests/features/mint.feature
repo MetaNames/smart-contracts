@@ -13,7 +13,7 @@ Feature: Mint feature
     Then Alice owns 'meta.name' domain
     And Alice mint count is 1
 
-  Scenario: The minting process of a domain without any parent, carried out by an administrator user, is executed correctly, even if mint count limit 0
+  Scenario: The minting process of a domain without any parent, carried out by an administrator user and when mint count limit 0, is executed correctly
     Given a meta names contract
     And Alice user with the admin role
     And contract config 'mint_count_limit_enabled' is 'true'
