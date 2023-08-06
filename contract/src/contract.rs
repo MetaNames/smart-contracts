@@ -3,7 +3,7 @@ use std::vec;
 use crate::{
     actions::{action_build_mint_callback, action_mint},
     msg::{InitMsg, MintMsg},
-    state::{ContractConfig, ContractState, UserRole},
+    state::{ContractConfig, ContractState, ContractStats, UserRole},
 };
 
 use contract_version_base::state::ContractVersionBase;
@@ -56,6 +56,7 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
         nft,
         payable_mint_info: msg.payable_mint_info,
         pns,
+        stats: ContractStats::default(),
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     };
 

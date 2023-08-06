@@ -47,12 +47,12 @@ pub struct ContractConfig {
 
 #[derive(ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct ContractStats {
-    pub mints_count: SortedVecMap<Address, u32>,
+    pub mint_count: SortedVecMap<Address, u32>,
 }
 
 impl ContractStats {
-    pub fn increate_mints_count(&mut self, address: Address) {
-        let count = self.mints_count.get(&address).unwrap_or(&0);
-        self.mints_count.insert(address, count + 1);
+    pub fn increate_mint_count(&mut self, address: Address) {
+        let count = self.mint_count.get(&address).unwrap_or(&0);
+        self.mint_count.insert(address, count + 1);
     }
 }
