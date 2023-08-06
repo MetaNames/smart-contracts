@@ -36,12 +36,12 @@ fn get_user_role(role: String) -> UserRole {
     }
 }
 
-#[given("a meta names contract")]
-fn meta_names_contract(world: &mut ContractWorld) {
+#[given(regex = "a meta names contract with 'whitelist' (enabled|disabled)")]
+fn meta_names_contract(world: &mut ContractWorld, whitelist: String) {
     let msg = InitMsg {
         admin_addresses: vec![mock_address(SYSTEM_ADDRESS)],
         config: ContractConfig {
-            whitelist_enabled: true,
+            whitelist_enabled: whitelist == "enabled",
         },
         name: "Meta Names".to_string(),
         symbol: "META".to_string(),
