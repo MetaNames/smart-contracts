@@ -54,6 +54,41 @@ fn meta_names_contract(world: &mut ContractWorld) {
     world.state = state;
 }
 
+#[given(regex = r"(contract) config '(.+)' is '(.+)'")]
+#[when(regex = r"(\w+) updates the config '(.+)' to '(.+)'")]
+fn update_contract_config(world: &mut ContractWorld, user: String, key: String, value: String) {
+    let res = catch_unwind(|| {
+        let new_config = match key.as_str() {
+            "whitelist_enabled" => {
+                let mut new_config = world.state.config.clone();
+                new_config.whitelist_enabled = value == "true";
+                new_config
+            }
+            "mint_count_limit_enabled" => {
+                let mut new_config = world.state.config.clone();
+                new_config.mint_count_limit_enabled = value == "true";
+                new_config
+            }
+            "mint_count_limit" => {
+                let mut new_config = world.state.config.clone();
+                new_config.mint_count_limit = value.parse::<u32>().unwrap();
+                new_config
+            }
+            _ => panic!("Unknown config key"),
+        };
+
+        update_config(
+            mock_contract_context(get_address_for_user(user.clone())),
+            world.state.clone(),
+            new_config,
+        )
+    });
+
+    if let Ok((new_state, _)) = res {
+        world.state = new_state;
+    }
+}
+
 #[given(expr = "{word} minted '{word}' domain without a parent")]
 #[when(expr = "{word} mints '{word}' domain without fees and a parent")]
 fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
@@ -150,30 +185,6 @@ fn mint_domain_with_parent(
     }
 }
 
-#[when(regex = r"(\w+) updates the config '(.+)' to '(.+)'")]
-fn update_contract_config(world: &mut ContractWorld, user: String, key: String, value: String) {
-    let res = catch_unwind(|| {
-        let new_config = match key.as_str() {
-            "whitelist_enabled" => {
-                let mut new_config = world.state.config.clone();
-                new_config.whitelist_enabled = value == "true";
-                new_config
-            }
-            _ => panic!("Unknown config key"),
-        };
-
-        update_config(
-            mock_contract_context(get_address_for_user(user.clone())),
-            world.state.clone(),
-            new_config,
-        )
-    });
-
-    if let Ok((new_state, _)) = res {
-        world.state = new_state;
-    }
-}
-
 #[then(expr = "{word} owns '{word}' domain")]
 fn owns_the_domain(world: &mut ContractWorld, user: String, domain: String) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
@@ -214,6 +225,11 @@ fn contract_config_is(world: &mut ContractWorld, key: String, value: String) {
 
     match key.as_str() {
         "whitelist_enabled" => assert_eq!(config.whitelist_enabled, value == "true"),
+        "mint_count_limit_enabled" => assert_eq!(config.mint_count_limit_enabled, value == "true"),
+        "mint_count_limit" => {
+            let value = value.parse::<u32>().unwrap();
+            assert_eq!(config.mint_count_limit, value);
+        }
         _ => panic!("Unknown config key"),
     }
 }

@@ -13,8 +13,25 @@ Feature: Mint feature
     Then Alice owns 'meta.name' domain
     And Alice mint count is 1
 
+  Scenario: The minting process of a domain without any parent, carried out by an administrator user, is executed correctly, even if mint count limit 0
+    Given a meta names contract
+    And Alice user with the admin role
+    And contract config 'mint_count_limit_enabled' is 'true'
+    And contract config 'mint_count_limit' is '0'
+    When Alice mints 'meta.name' domain without a parent
+    Then Alice owns 'meta.name' domain
+    And Alice mint count is 1
+
   Scenario: The minting process of a domain without any parent, with a user without the whitelist role, fails
     Given a meta names contract
+    When Alice mints 'meta.name' domain without a parent
+    Then 'meta.name' domain is not minted
+
+  Scenario: The minting process of a domain without any parent, with a user with the whitelist role, but with mint count limit 0, fails
+    Given a meta names contract
+    And contract config 'whitelist_enabled' is 'false'
+    And contract config 'mint_count_limit_enabled' is 'true'
+    And contract config 'mint_count_limit' is '0'
     When Alice mints 'meta.name' domain without a parent
     Then 'meta.name' domain is not minted
 
