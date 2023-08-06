@@ -14,11 +14,11 @@ use crate::contract::__PBC_IS_ZK_CONTRACT;
 #[derive(PartialEq, Eq, Default, Clone, Debug)]
 pub struct ContractState {
     pub access_control: AccessControlState,
+    pub config: ContractConfig,
     pub nft: NFTContractState,
     pub payable_mint_info: PayableMintInfo,
     pub pns: PartisiaNameSystemState,
     pub version: ContractVersionBase,
-    pub config: ContractConfig,
 }
 
 #[derive(
@@ -41,5 +41,10 @@ pub enum UserRole {
 
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct ContractConfig {
+    pub whitelist_enabled: bool,
+}
+
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+pub struct ContractLog {
     pub whitelist_enabled: bool,
 }
