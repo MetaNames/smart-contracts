@@ -3,7 +3,7 @@ use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
 use nft::state::NFTContractState;
 use partisia_name_system::state::PartisiaNameSystemState;
-use pbc_contract_common::address::Address;
+use pbc_contract_common::{address::Address, sorted_vec_map::SortedVecMap};
 use read_write_rpc_derive::ReadWriteRPC;
 use read_write_state_derive::ReadWriteState;
 
@@ -18,6 +18,7 @@ pub struct ContractState {
     pub nft: NFTContractState,
     pub payable_mint_info: PayableMintInfo,
     pub pns: PartisiaNameSystemState,
+    pub stats: ContractStats,
     pub version: ContractVersionBase,
 }
 
@@ -44,7 +45,14 @@ pub struct ContractConfig {
     pub whitelist_enabled: bool,
 }
 
-#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
-pub struct ContractLog {
-    pub whitelist_enabled: bool,
+#[derive(ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+pub struct ContractStats {
+    pub mints_count: SortedVecMap<Address, u32>,
+}
+
+impl ContractStats {
+    pub fn increate_mints_count(&mut self, address: Address) {
+        let count = self.mints_count.get(&address).unwrap_or(&0);
+        self.mints_count.insert(address, count + 1);
+    }
 }
