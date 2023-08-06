@@ -19,8 +19,8 @@ pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
 /// Grants specified tole to specified account
 /// Throws error if caller is not admin of specified role
 pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
-    let role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
-    execute_assert_only_role(state, role, ctx);
+    let admin_role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
+    execute_assert_only_role(state, admin_role, ctx);
 
     state._set_role(msg.role, &msg.account);
 }
@@ -29,8 +29,8 @@ pub fn execute_grant_role(ctx: &ContractContext, state: &mut AccessControlState,
 /// Revokes specified tole from specified account
 /// Throws error if caller is not admin of specified role
 pub fn execute_revoke_role(ctx: &ContractContext, state: &mut AccessControlState, msg: &ACRoleMsg) {
-    let role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
-    execute_assert_only_role(state, role, ctx);
+    let admin_role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
+    execute_assert_only_role(state, admin_role, ctx);
 
     state._revoke_role(msg.role, &msg.account);
 }
@@ -43,8 +43,8 @@ pub fn execute_set_role_admin(
     state: &mut AccessControlState,
     msg: &ACSetAdminRoleMsg,
 ) {
-    let role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
-    execute_assert_only_role(state, role, ctx);
+    let admin_role = state.get_role_admin(msg.role).unwrap_or(DEFAULT_ADMIN_ROLE);
+    execute_assert_only_role(state, admin_role, ctx);
 
     state._set_role_admin(msg.role, msg.new_admin_role);
 }
