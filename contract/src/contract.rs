@@ -27,12 +27,12 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
     assert!(
-        msg.payable_mint_info.token.is_some(),
+        msg.config.payable_mint_info.token.is_some(),
         "{}",
         ContractError::PayableTokenNotSet
     );
     assert!(
-        msg.payable_mint_info.receiver.is_some(),
+        msg.config.payable_mint_info.receiver.is_some(),
         "{}",
         ContractError::PayableReceiverNotSet
     );
@@ -54,7 +54,6 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
         access_control,
         config: msg.config,
         nft,
-        payable_mint_info: msg.payable_mint_info,
         pns,
         stats: ContractStats::default(),
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
@@ -179,7 +178,7 @@ pub fn mint(
 
         let payout_transfer_events = action_build_mint_callback(
             ctx,
-            mut_state.payable_mint_info,
+            mut_state.config.payable_mint_info,
             &MintMsg {
                 domain,
                 to,

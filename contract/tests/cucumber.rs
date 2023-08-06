@@ -38,16 +38,20 @@ fn get_user_role(role: String) -> UserRole {
 
 #[given(regex = "a meta names contract")]
 fn meta_names_contract(world: &mut ContractWorld) {
-    let msg = InitMsg {
-        admin_addresses: vec![mock_address(SYSTEM_ADDRESS)],
-        config: ContractConfig::default(),
-        name: "Meta Names".to_string(),
-        symbol: "META".to_string(),
-        uri_template: "metanames.io".to_string(),
+    let config = ContractConfig {
         payable_mint_info: PayableMintInfo {
             token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
             receiver: Some(mock_address(ALICE_ADDRESS)),
         },
+        ..ContractConfig::default()
+    };
+
+    let msg = InitMsg {
+        admin_addresses: vec![mock_address(SYSTEM_ADDRESS)],
+        config,
+        name: "Meta Names".to_string(),
+        symbol: "META".to_string(),
+        uri_template: "metanames.io".to_string(),
     };
 
     let (state, _) = initialize(mock_contract_context(ALICE_ADDRESS), msg);

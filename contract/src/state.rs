@@ -16,7 +16,6 @@ pub struct ContractState {
     pub access_control: AccessControlState,
     pub config: ContractConfig,
     pub nft: NFTContractState,
-    pub payable_mint_info: PayableMintInfo,
     pub pns: PartisiaNameSystemState,
     pub stats: ContractStats,
     pub version: ContractVersionBase,
@@ -45,6 +44,7 @@ pub struct ContractConfig {
     pub whitelist_enabled: bool,
     pub mint_count_limit_enabled: bool,
     pub mint_count_limit: u32,
+    pub payable_mint_info: PayableMintInfo,
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
