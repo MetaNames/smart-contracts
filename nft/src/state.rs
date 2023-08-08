@@ -10,6 +10,7 @@ pub const URL_LENGTH: usize = 64;
 /// This structure describes main NFT contract state.
 #[derive(ReadWriteState, CreateTypeSpec, Clone, Default, PartialEq, Eq, Debug)]
 pub struct NFTContractState {
+    pub contract_owner: Option<Address>,
     pub name: String,
     pub symbol: String,
     pub owners: SortedVecMap<u128, Address>,

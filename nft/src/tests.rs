@@ -26,6 +26,7 @@ fn proper_execute_init() {
     assert_eq!(
         state,
         NFTContractState {
+            contract_owner: Some(mock_address(2)),
             name: "Cool Token".to_string(),
             symbol: "CTC".to_string(),
             uri_template: "ipfs://some.some".to_string(),
