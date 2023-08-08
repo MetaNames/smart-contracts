@@ -99,8 +99,11 @@ impl NFTContractState {
     ///
     /// A [`bool`] True if `token_id` is owned or approved for `spender`, false otherwise.
     pub fn is_approved_or_owner(&self, spender: Address, token_id: u128) -> bool {
+        let contract_owner = self.contract_owner.unwrap();
         let owner = self.owner_of(token_id);
+
         spender == owner
+            || spender == contract_owner
             || self.is_approved_for_all(owner, spender)
             || self.get_approved(token_id) == Some(spender)
     }
