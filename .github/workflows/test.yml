@@ -12,14 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Set default rust version
-      #   run: rustup default 1.67
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          target: wasm32-unknown-unknown
-          override: true
+      - name: Set default rust version
+        run: rustup default 1.67
 
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
