@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::{
     actions::{action_build_mint_callback, action_mint},
     msg::{InitMsg, MintMsg},
