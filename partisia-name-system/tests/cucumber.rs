@@ -134,7 +134,7 @@ fn domain_record_delete(world: &mut PartisiaNameSystemWorld, class: String, doma
     execute_record_delete(&mock_contract_context(1), &mut world.state, &msg);
 }
 
-#[when(regex = ".+ delete all records for the '(.+)' domain")]
+#[when(regex = ".+ deletes all records for the '(.+)' domain")]
 fn domain_record_delete_all(world: &mut PartisiaNameSystemWorld, domain: String) {
     let msg = PnsRecordDeleteAllMsg { domain };
 

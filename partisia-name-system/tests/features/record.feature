@@ -50,6 +50,6 @@ Feature: Domain Record feature
     And Alice minted 'meta.name' domain without a parent
     And Alice minted the 'Wallet' record with 'data' data for the 'meta.name' domain
     And Alice minted the 'Twitter' record with 'handle' data for the 'meta.name' domain
-    When Alice delete all records for the 'meta.name' domain
+    When Alice deletes all records for the 'meta.name' domain
     Then 'meta.name' domain does not have a 'Wallet' record
     And 'meta.name' domain does not have a 'Twitter' record
