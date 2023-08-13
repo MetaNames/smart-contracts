@@ -1,6 +1,9 @@
 use crate::{
-    actions::{action_build_mint_callback, action_mint},
-    msg::{InitMsg, MintMsg},
+    actions::{
+        action_build_mint_callback, action_build_renew_callback, action_mint,
+        action_renew_subscription,
+    },
+    msg::{InitMsg, MintMsg, RenewDomainMsg},
     state::{ContractConfig, ContractState, ContractStats, UserRole},
 };
 
@@ -170,7 +173,7 @@ pub fn mint(
     to: Address,
     token_uri: Option<String>,
     parent_id: Option<String>,
-    years_active: Option<u32>,
+    subscription_years: Option<u32>,
 ) -> (ContractState, Vec<EventGroup>) {
     assert_contract_enabled(&state);
 
@@ -209,7 +212,7 @@ pub fn mint(
             );
         }
 
-        let years_active = years_active.unwrap_or(1);
+        let subscription_years = subscription_years.unwrap_or(1);
         let payout_transfer_events = action_build_mint_callback(
             ctx,
             mut_state.config.payable_mint_info,
@@ -218,7 +221,7 @@ pub fn mint(
                 to,
                 token_uri,
                 parent_id,
-                subscription_years: Some(years_active),
+                subscription_years: Some(subscription_years),
             },
             0x30,
         );
@@ -371,4 +374,55 @@ fn assert_contract_enabled(state: &ContractState) {
         "{}",
         ContractError::ContractDisabled
     );
+}
+
+#[action(shortname = 0x26)]
+pub fn renew_subscription(
+    ctx: ContractContext,
+    mut state: ContractState,
+    domain: String,
+    payer: Address,
+    subscription_years: u32,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_contract_enabled(&state);
+
+    let is_admin = state
+        .access_control
+        .has_role(UserRole::Admin {} as u8, &ctx.sender);
+
+    let events;
+    if is_admin {
+        let (new_state, renew_events) =
+            action_renew_subscription(ctx, state, domain.clone(), subscription_years);
+
+        state = new_state;
+        events = renew_events;
+    } else {
+        events = action_build_renew_callback(
+            ctx,
+            state.config.payable_mint_info,
+            &RenewDomainMsg {
+                domain: domain.clone(),
+                payer,
+                subscription_years,
+            },
+            0x31,
+        );
+    };
+
+    (state, events)
+}
+
+#[callback(shortname = 0x31)]
+pub fn on_renew_subscription_callback(
+    ctx: ContractContext,
+    callback_ctx: CallbackContext,
+    state: ContractState,
+    msg: RenewDomainMsg,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_contract_enabled(&state);
+
+    assert_callback_success(&callback_ctx);
+
+    action_renew_subscription(ctx, state, msg.domain, msg.subscription_years)
 }

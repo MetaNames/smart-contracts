@@ -1,11 +1,10 @@
-use chrono::prelude::Utc;
-use chrono::Duration;
+use chrono::{DateTime, Duration, Utc};
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg};
 use pbc_contract_common::{address::Address, context::ContractContext, events::EventGroup};
 
 use crate::{
-    msg::{MPC20TransferFromMsg, MintMsg},
+    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
     state::{ContractState, PayableMintInfo},
     ContractError,
 };
@@ -105,6 +104,49 @@ pub fn action_build_mint_callback(
     vec![payout_transfer_events.build()]
 }
 
+pub fn action_build_renew_callback(
+    ctx: ContractContext,
+    payable_mint_info: PayableMintInfo,
+    renew_msg: &RenewDomainMsg,
+    callback_byte: u32,
+) -> Vec<EventGroup> {
+    let mut payout_transfer_events = EventGroup::builder();
+
+    MPC20TransferFromMsg {
+        from: renew_msg.payer,
+        to: payable_mint_info.receiver.unwrap(),
+        amount: calculate_mint_fees(renew_msg.domain.as_str(), renew_msg.subscription_years),
+    }
+    .as_interaction(
+        &mut payout_transfer_events,
+        &payable_mint_info.token.unwrap(),
+    );
+
+    build_msg_callback(&mut payout_transfer_events, callback_byte, renew_msg);
+
+    vec![payout_transfer_events.build()]
+}
+
+pub fn action_renew_subscription(
+    ctx: ContractContext,
+    state: ContractState,
+    domain: String,
+    subscription_years: u32,
+) -> (ContractState, Vec<EventGroup>) {
+    let mut state = state;
+    let mut domain = state.pns.get_mut_domain(&domain).unwrap();
+
+    let mut new_expiration_at = match domain.expires_at {
+        Some(expires_at) => parse_timestamp(expires_at),
+        None => Utc::now(),
+    };
+    new_expiration_at += Duration::days(subscription_years as i64 * 365);
+
+    domain.expires_at = Some(new_expiration_at.timestamp());
+
+    (state, vec![])
+}
+
 pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
     let length = domain_name.len();
     let amount = match length {
@@ -116,4 +158,13 @@ pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
     };
 
     amount * years as u128
+}
+
+fn parse_timestamp(timestamp: i64) -> DateTime<Utc> {
+    let naive_datetime_opt = chrono::NaiveDateTime::from_timestamp_opt(timestamp, 0);
+
+    match naive_datetime_opt {
+        Some(naive_datetime) => DateTime::from_utc(naive_datetime, Utc),
+        None => panic!("Invalid timestamp"),
+    }
 }

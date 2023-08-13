@@ -21,7 +21,7 @@ pub struct InitMsg {
 }
 
 /// ## Description
-/// This structure describes fields for PNS mint msg
+/// This structure describes fields for mint msg
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
 #[rpc_msg(action = 0x09)]
 pub struct MintMsg {
@@ -45,4 +45,14 @@ pub struct MPC20TransferFromMsg {
     pub to: Address,
     /// amount to receive
     pub amount: u128,
+}
+
+/// ## Description
+/// This structure describes fields for renew msg
+#[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
+#[rpc_msg(action = 0x26)]
+pub struct RenewDomainMsg {
+    pub domain: String,
+    pub payer: Address,
+    pub subscription_years: u32,
 }

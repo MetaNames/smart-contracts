@@ -1,10 +1,11 @@
+use chrono::{DateTime, Duration, Utc};
 use std::panic::catch_unwind;
 
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
     contract::{
-        approve_domain, initialize, mint, on_mint_callback, transfer_domain, update_config,
-        update_user_role,
+        approve_domain, initialize, mint, on_mint_callback, renew_subscription, transfer_domain,
+        update_config, update_user_role,
     },
     msg::{InitMsg, MintMsg},
     state::{ContractConfig, ContractState, PayableMintInfo, UserRole},
@@ -24,6 +25,7 @@ const PAYABLE_TOKEN_ADDRESS: u8 = 10;
 #[derive(Debug, Default, World)]
 pub struct ContractWorld {
     state: ContractState,
+    point_in_time: DateTime<Utc>,
 }
 
 fn get_address_for_user(user: String) -> u8 {
@@ -81,6 +83,7 @@ fn meta_names_contract(world: &mut ContractWorld) {
 
     let (state, _) = initialize(mock_contract_context(ALICE_ADDRESS), msg);
     world.state = state;
+    world.point_in_time = Utc::now();
 }
 
 #[given(regex = r"(contract) config '(.+)' is '(.+)'")]
@@ -234,6 +237,32 @@ fn mint_a_record(
     }
 }
 
+#[given(expr = "{word} renewed '{word}' domain for {int} years")]
+#[when(expr = "{word} renews '{word}' domain for {int} years")]
+fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, years: u32) {
+    // To properly test renewing a domain, we need to override the expiration time of the domain
+    let domain = &mut world
+        .state
+        .pns
+        .get_mut_domain(domain_name.as_str())
+        .unwrap();
+    domain.expires_at = Some(world.point_in_time.timestamp());
+
+    let res = catch_unwind(|| {
+        renew_subscription(
+            mock_contract_context(get_address_for_user(user.clone())),
+            world.state.clone(),
+            domain_name,
+            mock_address(get_address_for_user(user)),
+            years,
+        )
+    });
+
+    if let Ok((new_state, _)) = res {
+        world.state = new_state;
+    }
+}
+
 #[when(expr = "{word} mints '{word}' domain with '{word}' domain as the parent")]
 #[when(regex = r"(\w+) mints '(.+)' domain without (a parent)")]
 fn mint_domain_with_parent(
@@ -341,6 +370,14 @@ fn domain_has_no_record(world: &mut ContractWorld, domain: String, class: String
 
         assert_eq!(record, None);
     }
+}
+
+#[then(expr = "'{word}' domain expires in {int} years")]
+fn domain_expires_in(world: &mut ContractWorld, domain: String, years: u32) {
+    let domain = world.state.pns.get_domain(&domain).unwrap();
+
+    let expected_expires_at = world.point_in_time + Duration::days(365 * years as i64);
+    assert_eq!(domain.expires_at, Some(expected_expires_at.timestamp()));
 }
 
 // This runs before everything else, so you can setup things here.
