@@ -1,7 +1,7 @@
-use chrono::{Duration, Utc};
 use pbc_contract_common::address::{Address, AddressType};
 use pbc_contract_common::context::{CallbackContext, ContractContext};
 use pbc_contract_common::Hash;
+use std::time::{Duration, SystemTime};
 
 pub fn mock_address(le: u8) -> Address {
     Address {
@@ -45,11 +45,17 @@ pub fn string_to_bytes(s: &str) -> Vec<u8> {
 }
 
 pub fn tomorrow_timestamp() -> i64 {
-    let tomorrow = Utc::now() + Duration::days(1);
-    tomorrow.timestamp()
+    let tomorrow = get_unix_timestamp() + Duration::from_secs(60 * 60 * 24);
+    tomorrow.as_secs() as i64
 }
 
 pub fn yesterday_timestamp() -> i64 {
-    let yesterday = Utc::now() - Duration::days(1);
-    yesterday.timestamp()
+    let yesterday = get_unix_timestamp() - Duration::from_secs(60 * 60 * 24);
+    yesterday.as_secs() as i64
+}
+
+fn get_unix_timestamp() -> Duration {
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
 }
