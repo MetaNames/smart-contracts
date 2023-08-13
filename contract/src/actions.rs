@@ -1,14 +1,17 @@
-use chrono::{DateTime, Duration, Utc};
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg};
 use pbc_contract_common::{address::Address, context::ContractContext, events::EventGroup};
+use std::time::Duration;
 
 use crate::{
     msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
     state::{ContractState, PayableMintInfo},
     ContractError,
 };
-use utils::events::{build_msg_callback, IntoShortnameRPCEvent};
+use utils::{
+    events::{build_msg_callback, IntoShortnameRPCEvent},
+    time::{duration_of_years, unix_epoch_now_as_duration},
+};
 
 /// Action to mint contract
 pub fn action_mint(
@@ -43,8 +46,8 @@ pub fn action_mint(
             ContractError::Unauthorized
         );
     } else if let Some(years_active) = subscription_years {
-        let date = Utc::now() + Duration::days(years_active as i64 * 365);
-        expires_at = Some(date.timestamp());
+        let date = unix_epoch_now_as_duration() + duration_of_years(years_active as u64);
+        expires_at = Some(date.as_secs() as i64);
     }
 
     let mut state = state;
@@ -137,12 +140,12 @@ pub fn action_renew_subscription(
     let mut domain = state.pns.get_mut_domain(&domain).unwrap();
 
     let mut new_expiration_at = match domain.expires_at {
-        Some(expires_at) => parse_timestamp(expires_at),
-        None => Utc::now(),
+        Some(expires_at) => parse_timestamp_as_duration(expires_at),
+        None => unix_epoch_now_as_duration(),
     };
-    new_expiration_at += Duration::days(subscription_years as i64 * 365);
+    new_expiration_at += duration_of_years(subscription_years as u64);
 
-    domain.expires_at = Some(new_expiration_at.timestamp());
+    domain.expires_at = Some(new_expiration_at.as_secs() as i64);
 
     (state, vec![])
 }
@@ -160,11 +163,6 @@ pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
     amount * years as u128
 }
 
-fn parse_timestamp(timestamp: i64) -> DateTime<Utc> {
-    let naive_datetime_opt = chrono::NaiveDateTime::from_timestamp_opt(timestamp, 0);
-
-    match naive_datetime_opt {
-        Some(naive_datetime) => DateTime::from_utc(naive_datetime, Utc),
-        None => panic!("Invalid timestamp"),
-    }
+fn parse_timestamp_as_duration(timestamp: i64) -> Duration {
+    Duration::from_secs(timestamp as u64)
 }

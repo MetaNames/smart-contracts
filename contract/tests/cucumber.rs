@@ -1,5 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
-use std::panic::catch_unwind;
+use std::{panic::catch_unwind, time::Duration};
 
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
@@ -15,7 +14,10 @@ use partisia_name_system::{
     msg::{PnsRecordMintMsg, PnsRecordUpdateMsg},
     state::RecordClass,
 };
-use utils::tests::{mock_address, mock_contract_context, mock_successful_callback_context};
+use utils::{
+    tests::{mock_address, mock_contract_context, mock_successful_callback_context},
+    time::{duration_of_years, unix_epoch_now_as_duration},
+};
 
 const SYSTEM_ADDRESS: u8 = 0;
 const ALICE_ADDRESS: u8 = 1;
@@ -25,7 +27,7 @@ const PAYABLE_TOKEN_ADDRESS: u8 = 10;
 #[derive(Debug, Default, World)]
 pub struct ContractWorld {
     state: ContractState,
-    point_in_time: DateTime<Utc>,
+    point_in_time: Duration,
 }
 
 fn get_address_for_user(user: String) -> u8 {
@@ -83,7 +85,7 @@ fn meta_names_contract(world: &mut ContractWorld) {
 
     let (state, _) = initialize(mock_contract_context(ALICE_ADDRESS), msg);
     world.state = state;
-    world.point_in_time = Utc::now();
+    world.point_in_time = unix_epoch_now_as_duration();
 }
 
 #[given(regex = r"(contract) config '(.+)' is '(.+)'")]
@@ -246,7 +248,7 @@ fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, ye
         .pns
         .get_mut_domain(domain_name.as_str())
         .unwrap();
-    domain.expires_at = Some(world.point_in_time.timestamp());
+    domain.expires_at = Some(world.point_in_time.as_secs() as i64);
 
     let res = catch_unwind(|| {
         renew_subscription(
@@ -376,8 +378,11 @@ fn domain_has_no_record(world: &mut ContractWorld, domain: String, class: String
 fn domain_expires_in(world: &mut ContractWorld, domain: String, years: u32) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
 
-    let expected_expires_at = world.point_in_time + Duration::days(365 * years as i64);
-    assert_eq!(domain.expires_at, Some(expected_expires_at.timestamp()));
+    let expected_expires_at = world.point_in_time + duration_of_years(years as u64);
+    assert_eq!(
+        domain.expires_at,
+        Some(expected_expires_at.as_secs() as i64)
+    );
 }
 
 // This runs before everything else, so you can setup things here.
