@@ -11,7 +11,7 @@ pub struct PnsMintMsg {
     /// NFT token id
     pub token_id: u128,
     /// Unix timestamp
-    pub expires_at: i64,
+    pub expires_at: Option<i64>,
     /// optional parent
     pub parent_id: Option<String>,
 }
@@ -59,5 +59,5 @@ pub struct PnsRecordDeleteAllMsg {
 #[derive(ReadWriteRPC, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
 pub struct PnsDomainUpdateExpirationMsg {
     pub domain: String,
-    pub expires_at: i64,
+    pub expires_at: Option<i64>,
 }

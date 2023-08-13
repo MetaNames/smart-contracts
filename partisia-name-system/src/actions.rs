@@ -41,6 +41,11 @@ pub fn execute_mint(
 
     if let Some(parent_id) = msg.parent_id.clone() {
         assert!(state.is_minted(&parent_id), "{}", ContractError::NotFound);
+        assert!(
+            state.is_active(&parent_id),
+            "{}",
+            ContractError::DomainExpired
+        );
     }
 
     state.domains.insert(

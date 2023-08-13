@@ -26,7 +26,7 @@ fn proper_mint() {
         token_id: 1,
         domain: domain.clone(),
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -46,7 +46,7 @@ fn proper_mint_with_parent() {
         token_id: 1,
         domain: "meta".to_string(),
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -55,13 +55,97 @@ fn proper_mint_with_parent() {
         token_id: 2,
         domain: "name".to_string(),
         parent_id: Some("meta".to_string()),
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let domains_length = state.domains.len();
     assert_eq!(domains_length, 2);
+}
+
+#[test]
+#[should_panic(expected = "The specified domain is expired")]
+fn when_parent_domain_is_expired_subdomain_mint_fails() {
+    let minter = 1u8;
+    let alice = 10u8;
+
+    let mut state = execute_init(&mock_contract_context(2));
+
+    let mint_msg = PnsMintMsg {
+        token_id: 1,
+        domain: "meta".to_string(),
+        parent_id: None,
+        expires_at: Some(tomorrow_timestamp()),
+    };
+
+    let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
+
+    let update_expiration = PnsDomainUpdateExpirationMsg {
+        domain: "meta".to_string(),
+        expires_at: Some(yesterday_timestamp()),
+    };
+
+    let _ = execute_update_expiration(
+        &mock_contract_context(minter),
+        &mut state,
+        &update_expiration,
+    );
+
+    let mint_msg = PnsMintMsg {
+        token_id: 2,
+        domain: "name".to_string(),
+        parent_id: Some("meta".to_string()),
+        expires_at: None,
+    };
+
+    let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
+}
+
+#[test]
+#[should_panic(expected = "The specified domain is expired")]
+fn when_parent_domain_is_expired_subdomain_record_mint_fails() {
+    let minter = 1u8;
+    let alice = 10u8;
+
+    let mut state = execute_init(&mock_contract_context(2));
+
+    let mint_msg = PnsMintMsg {
+        token_id: 1,
+        domain: "meta".to_string(),
+        parent_id: None,
+        expires_at: Some(tomorrow_timestamp()),
+    };
+
+    let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
+
+    let mint_msg = PnsMintMsg {
+        token_id: 2,
+        domain: "name".to_string(),
+        parent_id: Some("meta".to_string()),
+        expires_at: None,
+    };
+
+    let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
+
+    let update_expiration = PnsDomainUpdateExpirationMsg {
+        domain: "meta".to_string(),
+        expires_at: Some(yesterday_timestamp()),
+    };
+
+    let _ = execute_update_expiration(
+        &mock_contract_context(minter),
+        &mut state,
+        &update_expiration,
+    );
+
+    let record_mint_msg = PnsRecordMintMsg {
+        domain: "name".to_string(),
+        class: RecordClass::Wallet {},
+        data: string_to_bytes("value"),
+    };
+
+    let _ = execute_record_mint(&mock_contract_context(minter), &mut state, &record_mint_msg);
 }
 
 #[test]
@@ -76,7 +160,7 @@ fn when_parent_does_not_exist_mint_fails() {
         token_id: 1,
         domain: "meta".to_string(),
         parent_id: Some("notfound".to_string()),
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -94,7 +178,7 @@ fn token_already_minted_on_mint() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -103,7 +187,7 @@ fn token_already_minted_on_mint() {
         domain: "name".to_string(),
         token_id: 2,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -122,7 +206,7 @@ fn mint_fails_when_parent_does_not_exist() {
         domain: domain.clone(),
         token_id: 1,
         parent_id: Some("not.existing.meta".to_string()),
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -140,7 +224,7 @@ fn proper_record_mint() {
         domain: domain.clone(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
@@ -174,7 +258,7 @@ fn when_token_not_present_record_mint_fails() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -200,7 +284,7 @@ fn record_already_minted_on_record_mint() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -227,7 +311,7 @@ fn proper_record_update() {
         domain: domain.clone(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
@@ -294,7 +378,7 @@ fn when_domain_is_expired_record_mint_actions_fails() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: yesterday_timestamp(),
+        expires_at: Some(yesterday_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -320,7 +404,7 @@ fn when_domain_is_expired_record_update_actions_fails() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: yesterday_timestamp(),
+        expires_at: Some(yesterday_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -346,7 +430,7 @@ fn when_domain_is_expired_record_delete_actions_fails() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: yesterday_timestamp(),
+        expires_at: Some(yesterday_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -370,7 +454,7 @@ fn when_domain_is_expired_record_delete_all_action_works() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: yesterday_timestamp(),
+        expires_at: Some(yesterday_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
@@ -400,14 +484,14 @@ fn when_domain_is_expired_update_expiration_action_works() {
         domain: "name".to_string(),
         token_id: 1,
         parent_id: None,
-        expires_at: yesterday_timestamp(),
+        expires_at: Some(yesterday_timestamp()),
     };
 
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 
     let update_expiration = PnsDomainUpdateExpirationMsg {
         domain: "name".to_string(),
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let _ = execute_update_expiration(
@@ -417,7 +501,7 @@ fn when_domain_is_expired_update_expiration_action_works() {
     );
 
     let domain = state.get_domain("name").unwrap();
-    assert!(domain.expires_at == tomorrow_timestamp());
+    assert!(domain.expires_at == Some(tomorrow_timestamp()));
 }
 
 #[test]
@@ -432,7 +516,7 @@ fn proper_record_delete() {
         domain: domain.clone(),
         token_id: 1,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
     let _ = execute_mint(&mock_contract_context(minter), &mut state, &mint_msg);
 

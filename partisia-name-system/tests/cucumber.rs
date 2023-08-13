@@ -48,7 +48,7 @@ fn mint_a_domain(world: &mut PartisiaNameSystemWorld, domain: String) {
         domain,
         token_id: 0,
         parent_id: None,
-        expires_at: tomorrow_timestamp(),
+        expires_at: Some(tomorrow_timestamp()),
     };
 
     let res = catch_unwind(|| {
@@ -69,7 +69,7 @@ fn mint_a_domain_with_parent(world: &mut PartisiaNameSystemWorld, domain: String
         domain,
         token_id: 0,
         parent_id: Some(parent),
-        expires_at: tomorrow_timestamp(),
+        expires_at: None,
     };
 
     let res = catch_unwind(|| {

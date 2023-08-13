@@ -24,7 +24,7 @@ pub struct Domain {
     pub token_id: u128,
     pub parent_id: Option<String>,
     pub minted_at: i64,
-    pub expires_at: i64,
+    pub expires_at: Option<i64>,
     pub records: SortedVecMap<RecordClass, Record>,
 }
 
@@ -79,7 +79,11 @@ impl Domain {
     /// Opposite of expired
     pub fn is_active(&self) -> bool {
         let now = Utc::now().timestamp();
-        self.expires_at > now
+
+        match self.expires_at {
+            Some(expires_at) => expires_at > now,
+            None => true,
+        }
     }
 
     /// ## Description
@@ -132,10 +136,24 @@ impl PartisiaNameSystemState {
         self.domains.get(&String::from(domain))
     }
 
-    pub fn is_active(&self, domain: &str) -> bool {
-        self.get_domain(domain)
-            .map(|d| d.is_active())
-            .unwrap_or(false)
+    /// ## Description
+    /// Returns if the domain is active
+    /// If the domain is a subdomain, it checks if the parent is active
+    pub fn is_active(&self, domain_name: &str) -> bool {
+        match self.get_domain(domain_name) {
+            Some(domain) => match domain.parent_id.as_ref() {
+                Some(parent_id) => {
+                    if let Some(parent) = self.get_domain(parent_id) {
+                        parent.is_active()
+                    } else {
+                        domain.is_active()
+                    }
+                }
+
+                None => domain.is_active(),
+            },
+            None => false,
+        }
     }
 
     pub fn get_domain_by_token_id(&self, token_id: u128) -> Option<(&String, &Domain)> {
