@@ -987,6 +987,7 @@ name = "meta-names-contract"
 version = "0.6.0"
 dependencies = [
  "access-control",
+ "chrono",
  "contract-version-base",
  "create_type_spec_derive",
  "cucumber",
