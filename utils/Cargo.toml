@@ -7,6 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+chrono = { workspace = true }
 pbc_contract_common = { workspace = true }
 pbc_contract_codegen = { workspace = true }
 pbc_traits = { workspace = true }
@@ -16,7 +17,7 @@ read_write_state_derive = { workspace = true }
 create_type_spec_derive = { workspace = true }
 
 rust_decimal = "1.21.0"
-base64 = "0.13.0"
+base64 = "0.21.2"
 hex = "0.4"
 sha3 = { version = "0.9.1", default-features = false }
 
@@ -24,4 +25,9 @@ sha3 = { version = "0.9.1", default-features = false }
 rpc-msg-derive = { path = "../rpc-msg-derive" }
 
 [features]
-abi = ["pbc_contract_common/abi", "pbc_contract_codegen/abi", "pbc_traits/abi", "create_type_spec_derive/abi"]
+abi = [
+  "pbc_contract_common/abi",
+  "pbc_contract_codegen/abi",
+  "pbc_traits/abi",
+  "create_type_spec_derive/abi",
+]

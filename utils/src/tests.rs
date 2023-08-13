@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use pbc_contract_common::address::{Address, AddressType};
 use pbc_contract_common::context::{CallbackContext, ContractContext};
 use pbc_contract_common::Hash;
@@ -41,4 +42,14 @@ pub fn mock_successful_callback_context() -> CallbackContext {
 
 pub fn string_to_bytes(s: &str) -> Vec<u8> {
     s.to_string().into_bytes()
+}
+
+pub fn tomorrow_timestamp() -> i64 {
+    let tomorrow = Utc::now() + Duration::days(1);
+    tomorrow.timestamp()
+}
+
+pub fn yesterday_timestamp() -> i64 {
+    let yesterday = Utc::now() - Duration::days(1);
+    yesterday.timestamp()
 }
