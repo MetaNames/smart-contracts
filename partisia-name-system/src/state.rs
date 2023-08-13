@@ -1,4 +1,4 @@
-use chrono::prelude::*;
+use chrono::prelude::Utc;
 use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::sorted_vec_map::SortedVecMap;

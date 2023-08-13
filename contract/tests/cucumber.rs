@@ -136,6 +136,7 @@ fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
                 to: mock_address(get_address_for_user(user)),
                 token_uri: None,
                 parent_id: None,
+                subscription_years: None,
             },
         )
     });
@@ -255,6 +256,7 @@ fn mint_domain_with_parent(
             mock_address(get_address_for_user(user)),
             None,
             parent_opt,
+            Some(1),
         )
     });
 

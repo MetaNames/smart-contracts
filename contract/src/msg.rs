@@ -32,6 +32,8 @@ pub struct MintMsg {
     pub token_uri: Option<String>,
     /// optional parent
     pub parent_id: Option<String>,
+    /// Subscription years
+    pub subscription_years: Option<u32>,
 }
 
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]

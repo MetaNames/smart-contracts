@@ -170,6 +170,7 @@ pub fn mint(
     to: Address,
     token_uri: Option<String>,
     parent_id: Option<String>,
+    years_active: Option<u32>,
 ) -> (ContractState, Vec<EventGroup>) {
     assert_contract_enabled(&state);
 
@@ -186,7 +187,7 @@ pub fn mint(
         .has_role(UserRole::Admin {} as u8, &ctx.sender);
     if parent_id.is_some() || is_admin {
         let (new_state, mint_events) =
-            action_mint(ctx, mut_state, domain, to, token_uri, parent_id);
+            action_mint(ctx, mut_state, domain, to, token_uri, parent_id, None);
 
         mut_state = new_state;
 
@@ -208,6 +209,7 @@ pub fn mint(
             );
         }
 
+        let years_active = years_active.unwrap_or(1);
         let payout_transfer_events = action_build_mint_callback(
             ctx,
             mut_state.config.payable_mint_info,
@@ -216,6 +218,7 @@ pub fn mint(
                 to,
                 token_uri,
                 parent_id,
+                subscription_years: Some(years_active),
             },
             0x30,
         );
@@ -237,7 +240,15 @@ pub fn on_mint_callback(
 
     assert_callback_success(&callback_ctx);
 
-    action_mint(ctx, state, msg.domain, msg.to, msg.token_uri, msg.parent_id)
+    action_mint(
+        ctx,
+        state,
+        msg.domain,
+        msg.to,
+        msg.token_uri,
+        msg.parent_id,
+        msg.subscription_years,
+    )
 }
 
 #[action(shortname = 0x21)]
