@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::sorted_vec_map::SortedVecMap;
@@ -22,6 +23,8 @@ pub struct PartisiaNameSystemState {
 pub struct Domain {
     pub token_id: u128,
     pub parent_id: Option<String>,
+    pub minted_at: i64,
+    pub expires_at: i64,
     pub records: SortedVecMap<RecordClass, Record>,
 }
 
@@ -72,6 +75,14 @@ impl Domain {
     }
 
     /// ## Description
+    /// Checks if domain is active
+    /// Opposite of expired
+    pub fn is_active(&self) -> bool {
+        let now = Utc::now().timestamp();
+        self.expires_at > now
+    }
+
+    /// ## Description
     /// Mints record for token
     pub fn mint_record(&mut self, class: &RecordClass, data: &[u8]) {
         assert!(
@@ -119,6 +130,12 @@ impl PartisiaNameSystemState {
     /// Returns info given domain
     pub fn get_domain(&self, domain: &str) -> Option<&Domain> {
         self.domains.get(&String::from(domain))
+    }
+
+    pub fn is_active(&self, domain: &str) -> bool {
+        self.get_domain(domain)
+            .map(|d| d.is_active())
+            .unwrap_or(false)
     }
 
     pub fn get_domain_by_token_id(&self, token_id: u128) -> Option<(&String, &Domain)> {
