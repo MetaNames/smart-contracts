@@ -1,8 +1,8 @@
-use chrono::Utc;
 use contract_version_base::state::ContractVersionBase;
 use pbc_contract_common::{
     context::ContractContext, events::EventGroup, sorted_vec_map::SortedVecMap,
 };
+use utils::time::unix_epoch_now;
 
 use crate::{
     msg::{
@@ -53,7 +53,7 @@ pub fn execute_mint(
         Domain {
             token_id: msg.token_id,
             records: SortedVecMap::new(),
-            minted_at: Utc::now().timestamp_millis(),
+            minted_at: unix_epoch_now(),
             expires_at: msg.expires_at,
             parent_id: msg.parent_id.clone(),
         },

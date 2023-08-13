@@ -1,9 +1,9 @@
-use chrono::prelude::Utc;
 use contract_version_base::state::ContractVersionBase;
 use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::sorted_vec_map::SortedVecMap;
 use read_write_rpc_derive::ReadWriteRPC;
 use read_write_state_derive::ReadWriteState;
+use utils::time::unix_epoch_now;
 
 use crate::ContractError;
 
@@ -78,7 +78,7 @@ impl Domain {
     /// Checks if domain is active
     /// Opposite of expired
     pub fn is_active(&self) -> bool {
-        let now = Utc::now().timestamp();
+        let now = unix_epoch_now();
 
         match self.expires_at {
             Some(expires_at) => expires_at > now,
