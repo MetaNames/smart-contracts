@@ -1,6 +1,10 @@
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{actions as pns_actions, msg as pns_msg};
-use pbc_contract_common::{address::Address, context::ContractContext, events::EventGroup};
+use pbc_contract_common::{
+    address::Address,
+    context::ContractContext,
+    events::{EventGroup, EventGroupBuilder},
+};
 use std::time::Duration;
 
 use crate::{
@@ -89,17 +93,12 @@ pub fn action_build_mint_callback(
     mint_msg: &MintMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
-    let mut payout_transfer_events = EventGroup::builder();
-
     let subscription_years = mint_msg.subscription_years.unwrap_or(1);
-    MPC20TransferFromMsg {
-        from: mint_msg.to,
-        to: payable_mint_info.receiver.unwrap(),
-        amount: calculate_mint_fees(mint_msg.domain.as_str(), subscription_years),
-    }
-    .as_interaction(
-        &mut payout_transfer_events,
-        &payable_mint_info.token.unwrap(),
+    let mut payout_transfer_events = build_payout_fees_event_group(
+        &mint_msg.to,
+        &payable_mint_info,
+        mint_msg.domain.as_str(),
+        &subscription_years,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
@@ -113,16 +112,11 @@ pub fn action_build_renew_callback(
     renew_msg: &RenewDomainMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
-    let mut payout_transfer_events = EventGroup::builder();
-
-    MPC20TransferFromMsg {
-        from: renew_msg.payer,
-        to: payable_mint_info.receiver.unwrap(),
-        amount: calculate_mint_fees(renew_msg.domain.as_str(), renew_msg.subscription_years),
-    }
-    .as_interaction(
-        &mut payout_transfer_events,
-        &payable_mint_info.token.unwrap(),
+    let mut payout_transfer_events = build_payout_fees_event_group(
+        &renew_msg.payer,
+        &payable_mint_info,
+        renew_msg.domain.as_str(),
+        &renew_msg.subscription_years,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, renew_msg);
@@ -161,6 +155,27 @@ pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
     };
 
     amount * years as u128
+}
+
+fn build_payout_fees_event_group(
+    payer: &Address,
+    payable_mint_info: &PayableMintInfo,
+    domain: &str,
+    subscription_years: &u32,
+) -> EventGroupBuilder {
+    let mut payout_transfer_events = EventGroup::builder();
+
+    MPC20TransferFromMsg {
+        from: *payer,
+        to: payable_mint_info.receiver.unwrap(),
+        amount: calculate_mint_fees(domain, *subscription_years),
+    }
+    .as_interaction(
+        &mut payout_transfer_events,
+        &payable_mint_info.token.unwrap(),
+    );
+
+    payout_transfer_events
 }
 
 fn parse_timestamp_as_duration(timestamp: i64) -> Duration {
