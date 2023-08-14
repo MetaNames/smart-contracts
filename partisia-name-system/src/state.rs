@@ -136,10 +136,6 @@ impl PartisiaNameSystemState {
         self.domains.get(&String::from(domain))
     }
 
-    pub fn get_mut_domain(&mut self, domain: &str) -> Option<&mut Domain> {
-        self.domains.get_mut(&String::from(domain))
-    }
-
     /// ## Description
     /// Returns if the domain is active
     /// If the domain is a subdomain, it checks if the parent is active

@@ -10,8 +10,8 @@ use meta_names_contract::{
     state::{ContractConfig, ContractState, PayableMintInfo, UserRole},
 };
 use partisia_name_system::{
-    actions::{execute_record_mint, execute_record_update},
-    msg::{PnsRecordMintMsg, PnsRecordUpdateMsg},
+    actions::{execute_record_mint, execute_record_update, execute_update_expiration},
+    msg::{PnsDomainUpdateExpirationMsg, PnsRecordMintMsg, PnsRecordUpdateMsg},
     state::RecordClass,
 };
 use utils::{
@@ -242,17 +242,22 @@ fn mint_a_record(
 #[given(expr = "{word} renewed '{word}' domain for {int} years")]
 #[when(expr = "{word} renews '{word}' domain for {int} years")]
 fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, years: u32) {
+    let context = mock_contract_context(get_address_for_user(user.clone()));
+
     // To properly test renewing a domain, we need to override the expiration time of the domain
-    let domain = &mut world
-        .state
-        .pns
-        .get_mut_domain(domain_name.as_str())
-        .unwrap();
-    domain.expires_at = Some(world.point_in_time.as_secs() as i64);
+    let expires_at = Some(world.point_in_time.as_secs() as i64);
+    execute_update_expiration(
+        &context,
+        &mut world.state.pns,
+        &PnsDomainUpdateExpirationMsg {
+            domain: domain_name.clone(),
+            expires_at,
+        },
+    );
 
     let res = catch_unwind(|| {
         renew_subscription(
-            mock_contract_context(get_address_for_user(user.clone())),
+            context,
             world.state.clone(),
             domain_name,
             mock_address(get_address_for_user(user)),

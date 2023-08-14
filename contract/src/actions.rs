@@ -1,5 +1,8 @@
 use nft::{actions as nft_actions, msg as nft_msg};
-use partisia_name_system::{actions as pns_actions, msg as pns_msg};
+use partisia_name_system::{
+    actions::{self as pns_actions, execute_update_expiration},
+    msg::{self as pns_msg, PnsDomainUpdateExpirationMsg},
+};
 use pbc_contract_common::{
     address::Address,
     context::ContractContext,
@@ -127,11 +130,11 @@ pub fn action_build_renew_callback(
 pub fn action_renew_subscription(
     ctx: ContractContext,
     state: ContractState,
-    domain: String,
+    domain_name: String,
     subscription_years: u32,
 ) -> (ContractState, Vec<EventGroup>) {
     let mut state = state;
-    let mut domain = state.pns.get_mut_domain(&domain).unwrap();
+    let domain = state.pns.get_domain(&domain_name).unwrap();
 
     let mut new_expiration_at = match domain.expires_at {
         Some(expires_at) => Duration::from_secs(expires_at as u64),
@@ -139,7 +142,14 @@ pub fn action_renew_subscription(
     };
     new_expiration_at += duration_in_years_of(subscription_years as u64);
 
-    domain.expires_at = Some(new_expiration_at.as_secs() as i64);
+    execute_update_expiration(
+        &ctx,
+        &mut state.pns,
+        &PnsDomainUpdateExpirationMsg {
+            domain: domain_name,
+            expires_at: Some(new_expiration_at.as_secs() as i64),
+        },
+    );
 
     (state, vec![])
 }
