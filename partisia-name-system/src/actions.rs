@@ -145,7 +145,7 @@ pub fn execute_record_delete(
     vec![]
 }
 
-//  ## Description
+/// ## Description
 /// Delete all records for a domain
 /// Does not require the domain to be active
 pub fn execute_record_delete_all(
@@ -161,7 +161,7 @@ pub fn execute_record_delete_all(
     vec![]
 }
 
-// ## Description
+///## Description
 /// Update the expiration date for a domain
 pub fn execute_update_expiration(
     ctx: &ContractContext,
