@@ -134,7 +134,7 @@ pub fn action_renew_subscription(
     let mut domain = state.pns.get_mut_domain(&domain).unwrap();
 
     let mut new_expiration_at = match domain.expires_at {
-        Some(expires_at) => parse_timestamp_as_duration(expires_at),
+        Some(expires_at) => Duration::from_secs(expires_at as u64),
         None => unix_epoch_now_as_duration(),
     };
     new_expiration_at += duration_in_years_of(subscription_years as u64);
@@ -180,8 +180,4 @@ fn build_payout_fees_event_group(
     );
 
     payout_transfer_events
-}
-
-fn parse_timestamp_as_duration(timestamp: i64) -> Duration {
-    Duration::from_secs(timestamp as u64)
 }
