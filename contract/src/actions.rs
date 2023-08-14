@@ -145,9 +145,7 @@ pub fn action_renew_subscription(
 }
 
 pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
-    if years < 1 {
-        panic!("Invalid subscription years");
-    }
+    assert!(years > 0, "{}", ContractError::InvalidSubscriptionYears);
 
     let length = domain_name.len();
     let amount = match length {
