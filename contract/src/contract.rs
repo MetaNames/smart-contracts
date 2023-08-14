@@ -206,7 +206,7 @@ pub fn mint(
         if mut_state.config.mint_count_limit_enabled && !is_admin {
             let mint_count = mut_state.stats.mint_count.get(&ctx.sender);
             assert!(
-                mint_count.is_none() || mint_count < Some(&mut_state.config.mint_count_limit),
+                mint_count.is_none() || mint_count <= Some(&mut_state.config.mint_count_limit),
                 "{}",
                 ContractError::MintCountLimitReached
             );
