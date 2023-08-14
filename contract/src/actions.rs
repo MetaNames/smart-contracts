@@ -17,7 +17,7 @@ use crate::{
 };
 use utils::{
     events::{build_msg_callback, IntoShortnameRPCEvent},
-    time::{duration_in_years_of, unix_epoch_now_as_duration},
+    time::{duration_in_years, unix_epoch_now_as_duration},
 };
 
 /// Action to mint contract
@@ -53,7 +53,7 @@ pub fn action_mint(
             ContractError::Unauthorized
         );
     } else if let Some(years_active) = subscription_years {
-        let date = unix_epoch_now_as_duration() + duration_in_years_of(years_active as u64);
+        let date = unix_epoch_now_as_duration() + duration_in_years(years_active as u64);
         expires_at = Some(date.as_secs() as i64);
     }
 
@@ -140,7 +140,7 @@ pub fn action_renew_subscription(
         Some(expires_at) => Duration::from_secs(expires_at as u64),
         None => unix_epoch_now_as_duration(),
     };
-    new_expiration_at += duration_in_years_of(subscription_years as u64);
+    new_expiration_at += duration_in_years(subscription_years as u64);
 
     execute_update_expiration(
         &ctx,

@@ -10,6 +10,6 @@ pub fn unix_epoch_now_as_duration() -> Duration {
         .unwrap()
 }
 
-pub fn duration_in_years_of(years: u64) -> Duration {
+pub fn duration_in_years(years: u64) -> Duration {
     Duration::from_secs(years * 365 * 24 * 60 * 60)
 }

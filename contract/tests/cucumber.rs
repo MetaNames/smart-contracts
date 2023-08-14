@@ -16,7 +16,7 @@ use partisia_name_system::{
 };
 use utils::{
     tests::{mock_address, mock_contract_context, mock_successful_callback_context},
-    time::{duration_in_years_of, unix_epoch_now_as_duration},
+    time::{duration_in_years, unix_epoch_now_as_duration},
 };
 
 const SYSTEM_ADDRESS: u8 = 0;
@@ -383,7 +383,7 @@ fn domain_has_no_record(world: &mut ContractWorld, domain: String, class: String
 fn domain_expires_in(world: &mut ContractWorld, domain: String, years: u32) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
 
-    let expected_expires_at = world.point_in_time + duration_in_years_of(years as u64);
+    let expected_expires_at = world.point_in_time + duration_in_years(years as u64);
     assert_eq!(
         domain.expires_at,
         Some(expected_expires_at.as_secs() as i64)
