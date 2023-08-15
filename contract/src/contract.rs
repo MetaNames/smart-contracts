@@ -385,6 +385,11 @@ pub fn renew_subscription(
     subscription_years: u32,
 ) -> (ContractState, Vec<EventGroup>) {
     assert_contract_enabled(&state);
+    assert!(
+        subscription_years > 0,
+        "{}",
+        ContractError::InvalidSubscriptionYears
+    );
 
     let is_admin = state
         .access_control
@@ -393,7 +398,7 @@ pub fn renew_subscription(
     let events;
     if is_admin {
         let (new_state, renew_events) =
-            action_renew_subscription(ctx, state, domain.clone(), subscription_years);
+            action_renew_subscription(ctx, state, domain, subscription_years);
 
         state = new_state;
         events = renew_events;
@@ -402,7 +407,7 @@ pub fn renew_subscription(
             ctx,
             state.config.payable_mint_info,
             &RenewDomainMsg {
-                domain: domain.clone(),
+                domain,
                 payer,
                 subscription_years,
             },
