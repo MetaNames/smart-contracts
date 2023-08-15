@@ -31,6 +31,6 @@ pub enum ContractError {
     #[error("The specified domain is not active")]
     DomainNotActive,
 
-    #[error("The given subscriptions years values is not valid")]
+    #[error("The given subscription years value is not valid")]
     InvalidSubscriptionYears,
 }
