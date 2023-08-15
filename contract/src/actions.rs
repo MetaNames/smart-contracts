@@ -1,3 +1,8 @@
+use crate::{
+    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
+    state::{ContractState, PayableMintInfo},
+    ContractError,
+};
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{
     actions::{self as pns_actions, execute_update_expiration},
@@ -8,16 +13,9 @@ use pbc_contract_common::{
     context::ContractContext,
     events::{EventGroup, EventGroupBuilder},
 };
-use std::time::Duration;
-
-use crate::{
-    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
-    state::{ContractState, PayableMintInfo},
-    ContractError,
-};
 use utils::{
     events::{build_msg_callback, IntoShortnameRPCEvent},
-    time::{duration_in_years, unix_epoch_now_as_duration},
+    time::milliseconds_in_years,
 };
 
 /// Action to mint contract
@@ -42,7 +40,11 @@ pub fn action_mint(
         assert!(parent.is_some(), "{}", ContractError::DomainNotMinted);
 
         let parent = parent.unwrap();
-        assert!(parent.is_active(), "{}", ContractError::DomainNotActive);
+        assert!(
+            parent.is_active(ctx.block_production_time),
+            "{}",
+            ContractError::DomainNotActive
+        );
 
         pns_actions::validate_domain_with_parent(&domain, &parent_id);
 
@@ -53,8 +55,8 @@ pub fn action_mint(
             ContractError::Unauthorized
         );
     } else if let Some(years_active) = subscription_years {
-        let date = unix_epoch_now_as_duration() + duration_in_years(years_active as u64);
-        expires_at = Some(date.as_secs() as i64);
+        let date = ctx.block_production_time + milliseconds_in_years(years_active as i64);
+        expires_at = Some(date);
     }
 
     let mut state = state;
@@ -137,17 +139,17 @@ pub fn action_renew_subscription(
     let domain = state.pns.get_domain(&domain_name).unwrap();
 
     let mut new_expiration_at = match domain.expires_at {
-        Some(expires_at) => Duration::from_secs(expires_at as u64),
-        None => unix_epoch_now_as_duration(),
+        Some(expires_at) => expires_at,
+        None => ctx.block_production_time,
     };
-    new_expiration_at += duration_in_years(subscription_years as u64);
+    new_expiration_at += milliseconds_in_years(subscription_years as i64);
 
     execute_update_expiration(
         &ctx,
         &mut state.pns,
         &PnsDomainUpdateExpirationMsg {
             domain: domain_name,
-            expires_at: Some(new_expiration_at.as_secs() as i64),
+            expires_at: Some(new_expiration_at),
         },
     );
 

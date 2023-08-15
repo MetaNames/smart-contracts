@@ -3,7 +3,6 @@ use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::sorted_vec_map::SortedVecMap;
 use read_write_rpc_derive::ReadWriteRPC;
 use read_write_state_derive::ReadWriteState;
-use utils::time::unix_epoch_now;
 
 use crate::ContractError;
 
@@ -24,6 +23,7 @@ pub struct Domain {
     pub token_id: u128,
     pub parent_id: Option<String>,
     pub minted_at: i64,
+    /// Unix millis timestamp
     pub expires_at: Option<i64>,
     pub records: SortedVecMap<RecordClass, Record>,
 }
@@ -77,11 +77,9 @@ impl Domain {
     /// ## Description
     /// Checks if domain is active
     /// Opposite of expired
-    pub fn is_active(&self) -> bool {
-        let now = unix_epoch_now();
-
+    pub fn is_active(&self, unix_millis_now: i64) -> bool {
         match self.expires_at {
-            Some(expires_at) => expires_at > now,
+            Some(expires_at) => expires_at > unix_millis_now,
             None => true,
         }
     }
@@ -139,18 +137,18 @@ impl PartisiaNameSystemState {
     /// ## Description
     /// Returns if the domain is active
     /// If the domain is a subdomain, it checks if the parent is active
-    pub fn is_active(&self, domain_name: &str) -> bool {
+    pub fn is_active(&self, domain_name: &str, unix_millis_now: i64) -> bool {
         match self.get_domain(domain_name) {
             Some(domain) => match domain.parent_id.as_ref() {
                 Some(parent_id) => {
                     if let Some(parent) = self.get_domain(parent_id) {
-                        parent.is_active()
+                        parent.is_active(unix_millis_now)
                     } else {
-                        domain.is_active()
+                        domain.is_active(unix_millis_now)
                     }
                 }
 
-                None => domain.is_active(),
+                None => domain.is_active(unix_millis_now),
             },
             None => false,
         }

@@ -1,4 +1,4 @@
-use std::{panic::catch_unwind, time::Duration};
+use std::panic::catch_unwind;
 
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
@@ -16,7 +16,7 @@ use partisia_name_system::{
 };
 use utils::{
     tests::{mock_address, mock_contract_context, mock_successful_callback_context},
-    time::{duration_in_years, unix_epoch_now_as_duration},
+    time::milliseconds_in_years,
 };
 
 const SYSTEM_ADDRESS: u8 = 0;
@@ -27,7 +27,7 @@ const PAYABLE_TOKEN_ADDRESS: u8 = 10;
 #[derive(Debug, Default, World)]
 pub struct ContractWorld {
     state: ContractState,
-    point_in_time: Duration,
+    point_in_time: i64,
 }
 
 fn get_address_for_user(user: String) -> u8 {
@@ -83,9 +83,12 @@ fn meta_names_contract(world: &mut ContractWorld) {
         uri_template: "metanames.io".to_string(),
     };
 
-    let (state, _) = initialize(mock_contract_context(ALICE_ADDRESS), msg);
+    let cxt = mock_contract_context(ALICE_ADDRESS);
+    world.point_in_time = cxt.block_production_time;
+
+    let (state, _) = initialize(cxt, msg);
+
     world.state = state;
-    world.point_in_time = unix_epoch_now_as_duration();
 }
 
 #[given(regex = r"(contract) config '(.+)' is '(.+)'")]
@@ -245,7 +248,7 @@ fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, ye
     let context = mock_contract_context(get_address_for_user(user.clone()));
 
     // To properly test renewing a domain, we need to override the expiration time of the domain
-    let expires_at = Some(world.point_in_time.as_secs() as i64);
+    let expires_at = Some(world.point_in_time);
     execute_update_expiration(
         &context,
         &mut world.state.pns,
@@ -383,11 +386,8 @@ fn domain_has_no_record(world: &mut ContractWorld, domain: String, class: String
 fn domain_expires_in(world: &mut ContractWorld, domain: String, years: u32) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
 
-    let expected_expires_at = world.point_in_time + duration_in_years(years as u64);
-    assert_eq!(
-        domain.expires_at,
-        Some(expected_expires_at.as_secs() as i64)
-    );
+    let expected_expires_at = world.point_in_time + milliseconds_in_years(years as i64);
+    assert_eq!(domain.expires_at, Some(expected_expires_at));
 }
 
 // This runs before everything else, so you can setup things here.

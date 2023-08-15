@@ -2,7 +2,6 @@ use contract_version_base::state::ContractVersionBase;
 use pbc_contract_common::{
     context::ContractContext, events::EventGroup, sorted_vec_map::SortedVecMap,
 };
-use utils::time::unix_epoch_now;
 
 use crate::{
     msg::{
@@ -42,7 +41,7 @@ pub fn execute_mint(
     if let Some(parent_id) = msg.parent_id.clone() {
         assert!(state.is_minted(&parent_id), "{}", ContractError::NotFound);
         assert!(
-            state.is_active(&parent_id),
+            state.is_active(&parent_id, ctx.block_production_time),
             "{}",
             ContractError::DomainExpired
         );
@@ -53,7 +52,7 @@ pub fn execute_mint(
         Domain {
             token_id: msg.token_id,
             records: SortedVecMap::new(),
-            minted_at: unix_epoch_now(),
+            minted_at: ctx.block_production_time,
             expires_at: msg.expires_at,
             parent_id: msg.parent_id.clone(),
         },
@@ -73,7 +72,7 @@ pub fn execute_record_mint(
 ) -> Vec<EventGroup> {
     assert!(state.is_minted(&msg.domain), "{}", ContractError::NotFound);
     assert!(
-        state.is_active(&msg.domain),
+        state.is_active(&msg.domain, ctx.block_production_time),
         "{}",
         ContractError::DomainExpired
     );
@@ -100,7 +99,7 @@ pub fn execute_record_update(
 ) -> Vec<EventGroup> {
     assert!(state.is_minted(&msg.domain), "{}", ContractError::NotFound);
     assert!(
-        state.is_active(&msg.domain),
+        state.is_active(&msg.domain, ctx.block_production_time),
         "{}",
         ContractError::DomainExpired
     );
@@ -128,7 +127,7 @@ pub fn execute_record_delete(
 ) -> Vec<EventGroup> {
     assert!(state.is_minted(&msg.domain), "{}", ContractError::NotFound);
     assert!(
-        state.is_active(&msg.domain),
+        state.is_active(&msg.domain, ctx.block_production_time),
         "{}",
         ContractError::DomainExpired
     );
