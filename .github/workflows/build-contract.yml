@@ -16,9 +16,6 @@ jobs:
           toolchain: 1.72
           target: wasm32-unknown-unknown
 
-      - name: Add wasm target
-        run: rustup target add wasm32-unknown-unknown
-
       - name: Setup caching dependencies
         uses: Swatinem/rust-cache@v2
 
