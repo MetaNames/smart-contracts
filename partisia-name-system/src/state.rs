@@ -15,7 +15,6 @@ pub const MAX_DOMAIN_LEN: usize = 32;
 pub struct PartisiaNameSystemState {
     pub version: ContractVersionBase,
     pub domains: SortedVecMap<String, Domain>,
-    pub records: SortedVecMap<String, Record>,
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
