@@ -118,7 +118,11 @@ impl Domain {
     /// ## Description
     /// Remove a record
     pub fn delete_record(&mut self, class: &RecordClass) {
-        assert!(self.is_record_minted(class), "{}", ContractError::NotMinted);
+        assert!(
+            self.is_record_minted(class),
+            "{}",
+            ContractError::RecordNotMinted
+        );
 
         if self.records.contains_key(class) {
             self.records.remove_entry(class);
