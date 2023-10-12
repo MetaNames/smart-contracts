@@ -149,7 +149,7 @@ impl PartisiaNameSystemState {
                     if let Some(parent) = self.get_domain(parent_id) {
                         parent.is_active(unix_millis_now)
                     } else {
-                        domain.is_active(unix_millis_now)
+                        panic!("Parent domain not found")
                     }
                 }
 
