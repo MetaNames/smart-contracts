@@ -80,7 +80,7 @@ impl Domain {
     /// Opposite of expired
     pub fn is_active(&self, unix_millis_now: i64) -> bool {
         match self.expires_at {
-            Some(expires_at) => expires_at > unix_millis_now,
+            Some(expires_at) => expires_at >= unix_millis_now,
             None => true,
         }
     }
@@ -144,17 +144,14 @@ impl PartisiaNameSystemState {
     /// If the domain is a subdomain, it checks if the parent is active
     pub fn is_active(&self, domain_name: &str, unix_millis_now: i64) -> bool {
         match self.get_domain(domain_name) {
-            Some(domain) => match domain.parent_id.as_ref() {
-                Some(parent_id) => {
-                    if let Some(parent) = self.get_domain(parent_id) {
-                        parent.is_active(unix_millis_now)
-                    } else {
-                        panic!("Parent domain not found")
-                    }
+            Some(domain) => {
+                if !domain.is_active(unix_millis_now) {
+                    false
+                } else {
+                    self.get_root_parent(domain_name)
+                        .map_or(true, |parent| parent.is_active(unix_millis_now))
                 }
-
-                None => domain.is_active(unix_millis_now),
-            },
+            }
             None => false,
         }
     }
@@ -167,11 +164,43 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Returns parent info by domain
-    pub fn get_parent(&self, domain: &str) -> Option<&Domain> {
-        self.domains
-            .get(&String::from(domain))
-            .and_then(|d| d.parent_id.as_ref())
-            .and_then(|parent_id| self.domains.get(parent_id))
+    pub fn get_parent(&self, domain: &Domain) -> Option<&Domain> {
+        domain.parent_id.as_ref().and_then(|parent_id| {
+            if !self.domains.contains_key(parent_id) {
+                panic!("Expected parent domain not found")
+            }
+
+            self.domains.get(parent_id)
+        })
+    }
+
+    /// Get all parents of a domain
+    pub fn get_parents(&self, domain_name: &str) -> Vec<&Domain> {
+        let mut parents: Vec<&Domain> = vec![];
+        let mut current_domain = self.get_domain(domain_name);
+
+        while let Some(domain) = current_domain {
+            if let Some(parent) = self.get_parent(domain) {
+                parents.push(parent);
+                current_domain = Some(parent);
+            } else {
+                current_domain = None;
+            }
+        }
+
+        parents
+    }
+
+    pub fn get_root_parent(&self, domain: &str) -> Option<&Domain> {
+        let parents = self.get_parents(domain);
+
+        if parents.is_empty() {
+            None
+        } else {
+            // By definition, only the root parent has no parent
+            let parent = Some(parents.last().unwrap());
+            parent.copied()
+        }
     }
 
     /// ## Description
