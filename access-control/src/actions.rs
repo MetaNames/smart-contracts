@@ -9,7 +9,11 @@ use crate::{
 /// Initializes access control extension state
 pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
     let mut state = AccessControlState::default();
-    state._setup_role(DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
+    state._setup_role(DEFAULT_ADMIN_ROLE, DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
+
+    for role in msg.additional_roles.iter() {
+        state._setup_role(*role, DEFAULT_ADMIN_ROLE, &vec![]);
+    }
 
     state
 }

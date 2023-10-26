@@ -44,7 +44,9 @@ impl AccessControlState {
     }
 
     /// Setups new role
-    pub fn _setup_role(&mut self, role: u8, accounts: &Vec<Address>) {
+    pub fn _setup_role(&mut self, role: u8, admin_role: u8, accounts: &Vec<Address>) {
+        self._set_role_admin(role, admin_role);
+
         for account in accounts {
             self._set_role(role, account);
         }
@@ -86,15 +88,7 @@ impl AccessControlState {
         if !self.has_role(role, account) {
             match self.roles.get_mut(&role) {
                 Some(role) => role.members.push(*account),
-                None => {
-                    self.roles.insert(
-                        role,
-                        Role {
-                            admin_role: DEFAULT_ADMIN_ROLE,
-                            members: vec![*account],
-                        },
-                    );
-                }
+                None => panic!("Role not found"),
             }
         }
     }
