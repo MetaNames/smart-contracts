@@ -135,8 +135,8 @@ impl Domain {
 impl PartisiaNameSystemState {
     /// ## Description
     /// Returns info given domain
-    pub fn get_domain(&self, domain: &str) -> Option<&Domain> {
-        self.domains.get(&String::from(domain))
+    pub fn get_domain(&self, domain_name: &str) -> Option<&Domain> {
+        self.domains.get(&String::from(domain_name))
     }
 
     /// ## Description
@@ -190,8 +190,8 @@ impl PartisiaNameSystemState {
     }
 
     /// Get root parent of a domain
-    pub fn get_root_parent(&self, domain: &str) -> Option<&Domain> {
-        let parents = self.get_parents(domain);
+    pub fn get_root_parent(&self, domain_name: &str) -> Option<&Domain> {
+        let parents = self.get_parents(domain_name);
 
         match parents.last() {
             Some(parent) => {
@@ -209,13 +209,15 @@ impl PartisiaNameSystemState {
 
     /// ## Description
     /// Says is token id minted or not
-    pub fn is_minted(&self, domain: &str) -> bool {
-        self.domains.contains_key(&String::from(domain))
+    pub fn is_minted(&self, domain_name: &str) -> bool {
+        self.domains.contains_key(&String::from(domain_name))
     }
 
     /// ## Description
     /// This function returns token id for given domain
-    pub fn get_token_id(&self, domain: &str) -> Option<u128> {
-        self.domains.get(&String::from(domain)).map(|d| d.token_id)
+    pub fn get_token_id(&self, domain_name: &str) -> Option<u128> {
+        self.domains
+            .get(&String::from(domain_name))
+            .map(|d| d.token_id)
     }
 }
