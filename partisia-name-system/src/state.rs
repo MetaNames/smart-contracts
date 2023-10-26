@@ -191,15 +191,21 @@ impl PartisiaNameSystemState {
         parents
     }
 
+    /// Get root parent of a domain
     pub fn get_root_parent(&self, domain: &str) -> Option<&Domain> {
         let parents = self.get_parents(domain);
 
-        if parents.is_empty() {
-            None
-        } else {
-            // By definition, only the root parent has no parent
-            let parent = Some(parents.last().unwrap());
-            parent.copied()
+        match parents.last() {
+            Some(parent) => {
+                // By definition, the root parent has no parent
+                assert!(
+                    parent.parent_id.is_none(),
+                    "Expected root parent to have no parent"
+                );
+
+                Some(parent)
+            }
+            None => None,
         }
     }
 
