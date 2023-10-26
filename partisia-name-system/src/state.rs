@@ -145,12 +145,10 @@ impl PartisiaNameSystemState {
     pub fn is_active(&self, domain_name: &str, unix_millis_now: i64) -> bool {
         match self.get_domain(domain_name) {
             Some(domain) => {
-                if !domain.is_active(unix_millis_now) {
-                    false
-                } else {
-                    self.get_root_parent(domain_name)
+                domain.is_active(unix_millis_now)
+                    && self
+                        .get_root_parent(domain_name)
                         .map_or(true, |parent| parent.is_active(unix_millis_now))
-                }
             }
             None => false,
         }
