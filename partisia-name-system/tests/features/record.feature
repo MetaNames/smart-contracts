@@ -27,7 +27,7 @@ Feature: Domain Record feature
     When Alice mints the 'Wallet' record with 'data' data for the 'meta.name.sub' domain
     Then 'meta.name.sub' domain does not have a 'Wallet' record
 
-  Scenario: The record mint of a domain with one of the deactivated parents does not happen
+  Scenario: The record mint of a domain with the deactivated root parent does not happen
     Given a PNS contract
     And Alice minted 'meta.name' domain without a parent
     And Alice minted 'meta.name.sub' domain with 'meta.name' domain as the parent
