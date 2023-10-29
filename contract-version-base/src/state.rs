@@ -3,6 +3,7 @@ use read_write_state_derive::ReadWriteState;
 
 /// ## Description
 /// This structure describes contract version base state
+#[repr(C)]
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug, Default)]
 pub struct ContractVersionBase {
     /// contract name

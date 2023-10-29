@@ -8,6 +8,7 @@ pub const URL_LENGTH: usize = 64;
 
 /// ## Description
 /// This structure describes main NFT contract state.
+#[repr(C)]
 #[derive(ReadWriteState, CreateTypeSpec, Clone, Default, PartialEq, Eq, Debug)]
 pub struct NFTContractState {
     pub contract_owner: Option<Address>,
@@ -21,6 +22,7 @@ pub struct NFTContractState {
     pub token_uri_details: SortedVecMap<u128, [u8; URL_LENGTH]>,
 }
 
+#[repr(C)]
 #[derive(ReadWriteState, CreateTypeSpec, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct OperatorApproval {
     pub owner: Address,
