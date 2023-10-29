@@ -44,7 +44,7 @@ impl AccessControlState {
     }
 
     /// Setups new role
-    pub fn _setup_role(&mut self, role: u8, admin_role: u8, accounts: &Vec<Address>) {
+    pub fn _setup_role(&mut self, role: u8, admin_role: u8, accounts: &[Address]) {
         self._set_role_admin(role, admin_role);
 
         for account in accounts {

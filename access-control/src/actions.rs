@@ -12,7 +12,7 @@ pub fn execute_init(msg: &ACInitMsg) -> AccessControlState {
     state._setup_role(DEFAULT_ADMIN_ROLE, DEFAULT_ADMIN_ROLE, &msg.admin_addresses);
 
     for role in msg.additional_roles.iter() {
-        state._setup_role(*role, DEFAULT_ADMIN_ROLE, &vec![]);
+        state._setup_role(*role, DEFAULT_ADMIN_ROLE, &[]);
     }
 
     state
