@@ -18,13 +18,21 @@ pub struct PartisiaNameSystemState {
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
-pub struct Domain {
-    pub token_id: u128,
-    pub parent_id: Option<String>,
-    pub minted_at: i64,
-    /// Unix millis timestamp
-    pub expires_at: Option<i64>,
-    pub records: SortedVecMap<RecordClass, Record>,
+pub enum Domain {
+    #[discriminant(0)]
+    Parent {
+        token_id: u128,
+        minted_at: i64,
+        expires_at: i64,
+        records: SortedVecMap<RecordClass, Record>,
+    },
+    #[discriminant(1)]
+    Child {
+        token_id: u128,
+        parent_id: String,
+        minted_at: i64,
+        records: SortedVecMap<RecordClass, Record>,
+    },
 }
 
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
@@ -63,25 +71,97 @@ pub enum RecordClass {
 }
 
 impl Domain {
+    /// Get domain token id
+    pub fn get_token_id(&self) -> u128 {
+        match self {
+            &Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => token_id,
+            &Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                records,
+            } => token_id,
+        }
+    }
+
+    ///  Get domain minted at
+    pub fn get_minted_at(&self) -> i64 {
+        match self {
+            &Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => minted_at,
+            &Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                records,
+            } => minted_at,
+        }
+    }
+
     /// ## Description
     /// Get record given class
     pub fn get_record(&self, class: &RecordClass) -> Option<&Record> {
-        self.records.get(class)
+        match self {
+            &Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                records,
+            } => records.get(class),
+            &Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => records.get(class),
+        }
     }
 
     /// ## Description
     /// Existence of record given class
     pub fn is_record_minted(&self, class: &RecordClass) -> bool {
-        self.records.contains_key(class)
+        match self {
+            &Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                records,
+            } => records.contains_key(class),
+            &Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => records.contains_key(class),
+        }
     }
 
     /// ## Description
     /// Checks if domain is active
     /// Opposite of expired
     pub fn is_active(&self, unix_millis_now: i64) -> bool {
-        match self.expires_at {
-            Some(expires_at) => expires_at >= unix_millis_now,
-            None => true,
+        match self {
+            &Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                records,
+            } => expires_at >= unix_millis_now,
+            &Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => true,
         }
     }
 
@@ -97,7 +177,21 @@ impl Domain {
         let record = Record {
             data: data.to_vec(),
         };
-        self.records.insert(*class, record);
+
+        match self {
+            &mut Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                mut records,
+            } => records.insert(*class, record),
+            &mut Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                mut records,
+            } => records.insert(*class, record),
+        };
     }
 
     /// ## Description
@@ -109,10 +203,26 @@ impl Domain {
             ContractError::RecordNotMinted
         );
 
-        self.records.get_mut(class).map(|record| {
-            record.data = data.to_vec();
-            record
-        });
+        match self {
+            &mut Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                mut records,
+            } => records.get_mut(class).map(|record| {
+                record.data = data.to_vec();
+                record
+            }),
+            &mut Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                mut records,
+            } => records.get_mut(class).map(|record| {
+                record.data = data.to_vec();
+                record
+            }),
+        };
     }
 
     /// ## Description
@@ -124,11 +234,32 @@ impl Domain {
             ContractError::RecordNotMinted
         );
 
-        if self.records.contains_key(class) {
-            self.records.remove_entry(class);
-        } else {
-            panic!("{}", ContractError::NotFound);
-        }
+        match self {
+            &mut Domain::Parent {
+                token_id,
+                minted_at,
+                expires_at,
+                mut records,
+            } => {
+                if records.contains_key(class) {
+                    records.remove_entry(class);
+                } else {
+                    panic!("{}", ContractError::NotFound);
+                }
+            }
+            &mut Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                mut records,
+            } => {
+                if records.contains_key(class) {
+                    records.remove_entry(class);
+                } else {
+                    panic!("{}", ContractError::NotFound);
+                }
+            }
+        };
     }
 }
 
@@ -157,19 +288,27 @@ impl PartisiaNameSystemState {
     pub fn get_domain_by_token_id(&self, token_id: u128) -> Option<(&String, &Domain)> {
         self.domains
             .iter()
-            .find(|(_, domain)| domain.token_id == token_id)
+            .find(|(_, domain)| domain.get_token_id() == token_id)
     }
 
     /// ## Description
     /// Returns parent info by domain
     pub fn get_parent(&self, domain: &Domain) -> Option<&Domain> {
-        domain.parent_id.as_ref().and_then(|parent_id| {
-            if !self.domains.contains_key(parent_id) {
-                panic!("Expected parent domain not found")
-            }
+        match domain {
+            Domain::Child {
+                token_id,
+                parent_id,
+                minted_at,
+                records,
+            } => {
+                if !self.domains.contains_key(parent_id) {
+                    panic!("Expected parent domain not found")
+                }
 
-            self.domains.get(parent_id)
-        })
+                self.domains.get(parent_id)
+            }
+            _ => None,
+        }
     }
 
     /// Get all parents of a domain
@@ -196,12 +335,17 @@ impl PartisiaNameSystemState {
         match parents.last() {
             Some(parent) => {
                 // By definition, the root parent has no parent
-                assert!(
-                    parent.parent_id.is_none(),
-                    "Expected root parent to have no parent"
-                );
-
-                Some(parent)
+                match parent {
+                    Domain::Parent {
+                        token_id,
+                        minted_at,
+                        expires_at,
+                        records,
+                    } => Some(parent),
+                    _ => {
+                        panic!("Expected root parent to have no parent")
+                    }
+                }
             }
             None => None,
         }
@@ -218,6 +362,6 @@ impl PartisiaNameSystemState {
     pub fn get_token_id(&self, domain_name: &str) -> Option<u128> {
         self.domains
             .get(&String::from(domain_name))
-            .map(|d| d.token_id)
+            .map(|d| d.get_token_id())
     }
 }
