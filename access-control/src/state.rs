@@ -1,15 +1,17 @@
-use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::{
     address::Address,
     context::ContractContext,
     sorted_vec_map::{SortedVecMap, SortedVecSet},
 };
+use pbc_traits::CreateTypeSpec;
 use pbc_traits::ReadWriteState;
 use read_write_state_derive::ReadWriteState;
 
+use std::collections::BTreeMap;
+
 /// This structure describes access control extension state
 #[repr(C)]
-#[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(ReadWriteState, Clone, PartialEq, Eq, Debug, Default)]
 pub struct AccessControlState<RoleEnum: Ord + Clone> {
     pub roles_admin: SortedVecMap<RoleEnum, RoleEnum>,
     pub roles_addresses: SortedVecSet<RoleAddress<RoleEnum>>,
@@ -17,7 +19,7 @@ pub struct AccessControlState<RoleEnum: Ord + Clone> {
 
 /// This structure describes role with some granted access control
 #[repr(C)]
-#[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
+#[derive(ReadWriteState, Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct RoleAddress<RoleEnum: Ord + Clone> {
     pub role: RoleEnum,
     pub address: Address,
@@ -87,5 +89,32 @@ impl<RoleEnum: Ord + Clone> AccessControlState<RoleEnum> {
                 address: *address,
             });
         }
+    }
+}
+
+// Implementations to fix the CreateTypeSpec bug
+#[cfg(feature = "abi")]
+impl<RoleEnum: CreateTypeSpec + Ord + Clone> CreateTypeSpec for AccessControlState<RoleEnum> {
+    fn __ty_name() -> String {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_name()
+    }
+    fn __ty_identifier() -> String {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_identifier()
+    }
+    fn __ty_spec_write(w: &mut Vec<u8>, lut: &BTreeMap<String, u8>) {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_spec_write(w, lut)
+    }
+}
+
+#[cfg(feature = "abi")]
+impl<RoleEnum: CreateTypeSpec + Ord + Clone> CreateTypeSpec for RoleAddress<RoleEnum> {
+    fn __ty_name() -> String {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_name()
+    }
+    fn __ty_identifier() -> String {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_identifier()
+    }
+    fn __ty_spec_write(w: &mut Vec<u8>, lut: &BTreeMap<String, u8>) {
+        SortedVecMap::<RoleEnum, RoleEnum>::__ty_spec_write(w, lut)
     }
 }
