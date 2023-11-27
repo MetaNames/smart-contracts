@@ -1,3 +1,4 @@
+use create_type_spec_derive::CreateTypeSpec;
 use pbc_contract_common::{
     address::Address, context::ContractContext, sorted_vec_map::SortedVecMap,
 };
@@ -90,32 +91,5 @@ impl AccessControlState {
                 None => panic!("Role not found"),
             }
         }
-    }
-}
-
-// Implementations to fix the CreateTypeSpec bug
-#[cfg(feature = "abi")]
-impl<RoleEnum: CreateTypeSpec + Ord + Clone> CreateTypeSpec for AccessControlState<RoleEnum> {
-    fn __ty_name() -> String {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_name()
-    }
-    fn __ty_identifier() -> String {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_identifier()
-    }
-    fn __ty_spec_write(w: &mut Vec<u8>, lut: &BTreeMap<String, u8>) {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_spec_write(w, lut)
-    }
-}
-
-#[cfg(feature = "abi")]
-impl<RoleEnum: CreateTypeSpec + Ord + Clone> CreateTypeSpec for RoleAddress<RoleEnum> {
-    fn __ty_name() -> String {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_name()
-    }
-    fn __ty_identifier() -> String {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_identifier()
-    }
-    fn __ty_spec_write(w: &mut Vec<u8>, lut: &BTreeMap<String, u8>) {
-        SortedVecMap::<RoleEnum, RoleEnum>::__ty_spec_write(w, lut)
     }
 }
