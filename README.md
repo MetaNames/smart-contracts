@@ -11,7 +11,7 @@ This repository holds the Meta Names smart contracts and is organized into sever
 All packages are rigorously tested using unit and integration tests via Cucumber.
 
 ## Deployments
-Testnet: `021990afe4d032b80a8d34c41e28befd8951399e03`
+Testnet: `020f77781340c36be023184bc9d69f29c928304d27`
 
 Mainnet: *SOON*
 
