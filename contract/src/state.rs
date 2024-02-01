@@ -45,14 +45,14 @@ pub enum UserRole {
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct MintFee {
     pub chars_count: u32,
-    pub fee: u32,
+    pub gas: u128,
 }
 
 #[repr(C)]
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct MintFees {
     pub mapping: Vec<MintFee>,
-    pub default_fee: u32,
+    pub default_fee: u128,
 }
 
 #[repr(C)]
@@ -80,10 +80,11 @@ impl ContractStats {
 }
 
 impl MintFees {
-    pub fn get_fee(&self, chars_count: u32) -> u32 {
+    pub fn get_gas_fees(&self, domain: &str) -> u128 {
+        let chars_count = domain.len() as u32;
         for fee in &self.mapping {
             if fee.chars_count == chars_count {
-                return fee.fee;
+                return fee.gas;
             }
         }
 

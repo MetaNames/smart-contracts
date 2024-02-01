@@ -211,9 +211,11 @@ pub fn mint(
         }
 
         let subscription_years = subscription_years.unwrap_or(1);
+        let gas_fees = mut_state.config.mint_fees.get_gas_fees(&domain);
         let payout_transfer_events = action_build_mint_callback(
             ctx,
             mut_state.config.payable_mint_info,
+            gas_fees,
             &MintMsg {
                 domain,
                 to,
@@ -398,9 +400,11 @@ pub fn renew_subscription(
         state = new_state;
         events = renew_events;
     } else {
+        let gas_fees = state.config.mint_fees.get_gas_fees(&domain);
         events = action_build_renew_callback(
             ctx,
             state.config.payable_mint_info,
+            gas_fees,
             &RenewDomainMsg {
                 domain,
                 payer,

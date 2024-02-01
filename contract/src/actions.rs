@@ -1,7 +1,5 @@
 use crate::{
-    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
-    state::{ContractState, PayableMintInfo},
-    ContractError,
+    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg}, state::{ContractState, PayableMintInfo}, ContractError
 };
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{
@@ -94,6 +92,7 @@ pub fn action_mint(
 pub fn action_build_mint_callback(
     ctx: ContractContext,
     payable_mint_info: PayableMintInfo,
+    mint_fees: u128,
     mint_msg: &MintMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
@@ -101,6 +100,7 @@ pub fn action_build_mint_callback(
     let mut payout_transfer_events = build_payout_fees_event_group(
         &mint_msg.to,
         &payable_mint_info,
+        mint_fees,
         mint_msg.domain.as_str(),
         &subscription_years,
     );
@@ -113,12 +113,14 @@ pub fn action_build_mint_callback(
 pub fn action_build_renew_callback(
     ctx: ContractContext,
     payable_mint_info: PayableMintInfo,
+    mint_fees: u128,
     renew_msg: &RenewDomainMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
     let mut payout_transfer_events = build_payout_fees_event_group(
         &renew_msg.payer,
         &payable_mint_info,
+        mint_fees,
         renew_msg.domain.as_str(),
         &renew_msg.subscription_years,
     );
@@ -172,15 +174,17 @@ pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
 fn build_payout_fees_event_group(
     payer: &Address,
     payable_mint_info: &PayableMintInfo,
+    mint_fees_per_year: u128,
     domain: &str,
     subscription_years: &u32,
 ) -> EventGroupBuilder {
     let mut payout_transfer_events = EventGroup::builder();
 
+    let gas_amount = mint_fees_per_year * subscription_years.clone() as u128;
     MPC20TransferFromMsg {
         from: *payer,
         to: payable_mint_info.receiver.unwrap(),
-        amount: calculate_mint_fees(domain, *subscription_years),
+        amount: gas_amount
     }
     .as_interaction(
         &mut payout_transfer_events,
