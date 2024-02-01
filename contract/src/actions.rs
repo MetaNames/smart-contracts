@@ -1,5 +1,7 @@
 use crate::{
-    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg}, state::{ContractState, PayableMintInfo}, ContractError
+    msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
+    state::{ContractState, PayableMintInfo},
+    ContractError,
 };
 use nft::{actions as nft_actions, msg as nft_msg};
 use partisia_name_system::{
@@ -96,6 +98,12 @@ pub fn action_build_mint_callback(
     mint_msg: &MintMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
+    assert!(
+        payable_mint_info.id == mint_msg.payable_token_id,
+        "{}",
+        ContractError::PayableMintInfoNotValid
+    );
+
     let subscription_years = mint_msg.subscription_years.unwrap_or(1);
     let mut payout_transfer_events = build_payout_fees_event_group(
         &mint_msg.to,
@@ -117,6 +125,11 @@ pub fn action_build_renew_callback(
     renew_msg: &RenewDomainMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
+    assert!(
+        payable_mint_info.id == renew_msg.payable_token_id,
+        "{}",
+        ContractError::PayableMintInfoNotValid
+    );
     let mut payout_transfer_events = build_payout_fees_event_group(
         &renew_msg.payer,
         &payable_mint_info,
@@ -169,7 +182,7 @@ fn build_payout_fees_event_group(
     MPC20TransferFromMsg {
         from: *payer,
         to: payable_mint_info.receiver.unwrap(),
-        amount: gas_amount
+        amount: gas_amount,
     }
     .as_interaction(
         &mut payout_transfer_events,

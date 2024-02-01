@@ -27,7 +27,7 @@ pub struct ContractState {
 )]
 pub struct PayableMintInfo {
     // Those are required but need to be optional for Default trait to work
-    pub id: u16,
+    pub id: u64,
     pub token: Option<Address>,
     pub receiver: Option<Address>,
 }
@@ -62,7 +62,7 @@ pub struct ContractConfig {
     pub contract_enabled: bool,
     pub mint_count_limit_enabled: bool,
     pub mint_count_limit: u32,
-    pub payable_mint_info: PayableMintInfo,
+    pub payable_mint_info: Vec<PayableMintInfo>,
     pub whitelist_enabled: bool,
     pub mint_fees: MintFees,
 }
@@ -71,6 +71,18 @@ pub struct ContractConfig {
 #[derive(ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct ContractStats {
     pub mint_count: SortedVecMap<Address, u32>,
+}
+
+impl ContractConfig {
+    pub fn get_payable_mint_info(&self, id: u64) -> Option<PayableMintInfo> {
+        for info in &self.payable_mint_info {
+            if info.id == id {
+                return Some(info.clone());
+            }
+        }
+
+        None
+    }
 }
 
 impl ContractStats {

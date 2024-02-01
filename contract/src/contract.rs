@@ -4,7 +4,7 @@ use crate::{
         action_renew_subscription,
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
-    state::{ContractConfig, ContractState, ContractStats, UserRole},
+    state::{ContractConfig, ContractState, ContractStats, PayableMintInfo, UserRole},
 };
 
 use contract_version_base::state::ContractVersionBase;
@@ -27,16 +27,25 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
+    let payable_mint_info = msg.config.payable_mint_info.clone();
     assert!(
-        msg.config.payable_mint_info.token.is_some(),
+        payable_mint_info.len() > 0,
         "{}",
-        ContractError::PayableTokenNotSet
+        ContractError::PayableMintInfoNotValid
     );
-    assert!(
-        msg.config.payable_mint_info.receiver.is_some(),
-        "{}",
-        ContractError::PayableReceiverNotSet
-    );
+
+    let payable_mint_info = payable_mint_info.into_iter().for_each(|info| {
+        assert!(
+            info.token.is_some(),
+            "{}",
+            ContractError::PayableTokenNotSet
+        );
+        assert!(
+            info.receiver.is_some(),
+            "{}",
+            ContractError::PayableReceiverNotSet
+        );
+    });
 
     let pns = pns_actions::execute_init(&ctx);
     let nft = nft_actions::execute_init(
@@ -169,6 +178,7 @@ pub fn mint(
     state: ContractState,
     domain: String,
     to: Address,
+    payable_token_id: u64,
     token_uri: Option<String>,
     parent_id: Option<String>,
     subscription_years: Option<u32>,
@@ -194,31 +204,34 @@ pub fn mint(
 
         events.extend(mint_events);
     } else {
-        if mut_state.config.whitelist_enabled {
+        let config = mut_state.config.clone();
+        if config.whitelist_enabled {
             let is_whitelisted = mut_state
                 .access_control
                 .has_role(UserRole::Whitelist {} as u8, &ctx.sender);
             assert!(is_whitelisted, "{}", ContractError::UserNotWhitelisted);
         }
 
-        if mut_state.config.mint_count_limit_enabled && !is_admin {
+        if config.mint_count_limit_enabled && !is_admin {
             let mint_count = mut_state.stats.mint_count.get(&ctx.sender);
             assert!(
-                mint_count.is_none() || mint_count <= Some(&mut_state.config.mint_count_limit),
+                mint_count.is_none() || mint_count <= Some(&config.mint_count_limit),
                 "{}",
                 ContractError::MintCountLimitReached
             );
         }
 
+        let payable_mint_info = assert_and_get_payable_info(&config, payable_token_id);
         let subscription_years = subscription_years.unwrap_or(1);
-        let gas_fees = mut_state.config.mint_fees.get_gas_fees(&domain);
+        let gas_fees = config.mint_fees.get_gas_fees(&domain);
         let payout_transfer_events = action_build_mint_callback(
             ctx,
-            mut_state.config.payable_mint_info,
+            payable_mint_info,
             gas_fees,
             &MintMsg {
                 domain,
                 to,
+                payable_token_id: payable_token_id,
                 token_uri,
                 parent_id,
                 subscription_years: Some(subscription_years),
@@ -373,11 +386,26 @@ fn assert_contract_enabled(state: &ContractState) {
     );
 }
 
+fn assert_and_get_payable_info(
+    config: &ContractConfig,
+    payable_token_id: u64,
+) -> PayableMintInfo {
+    let payable_mint_info = config.get_payable_mint_info(payable_token_id);
+    assert!(
+        payable_mint_info.is_some(),
+        "{}",
+        ContractError::PayableMintInfoNotValid
+    );
+
+    payable_mint_info.unwrap()
+}
+
 #[action(shortname = 0x26)]
 pub fn renew_subscription(
     ctx: ContractContext,
     mut state: ContractState,
     domain: String,
+    payable_token_id: u64,
     payer: Address,
     subscription_years: u32,
 ) -> (ContractState, Vec<EventGroup>) {
@@ -401,12 +429,14 @@ pub fn renew_subscription(
         events = renew_events;
     } else {
         let gas_fees = state.config.mint_fees.get_gas_fees(&domain);
+        let payable_mint_info = assert_and_get_payable_info(&state.config, payable_token_id);
         events = action_build_renew_callback(
             ctx,
-            state.config.payable_mint_info,
+            payable_mint_info,
             gas_fees,
             &RenewDomainMsg {
                 domain,
+                payable_token_id: payable_token_id,
                 payer,
                 subscription_years,
             },

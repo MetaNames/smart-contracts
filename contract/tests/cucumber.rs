@@ -68,11 +68,11 @@ fn get_record_class_given(class: String) -> RecordClass {
 fn meta_names_contract(world: &mut ContractWorld) {
     let config = ContractConfig {
         contract_enabled: true,
-        payable_mint_info: PayableMintInfo {
+        payable_mint_info: vec![PayableMintInfo {
             id: 0,
             token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
             receiver: Some(mock_address(ALICE_ADDRESS)),
-        },
+        }],
         ..ContractConfig::default()
     };
 
@@ -143,6 +143,7 @@ fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
             MintMsg {
                 domain,
                 to: mock_address(get_address_for_user(user)),
+                payable_token_id: 0,
                 token_uri: None,
                 parent_id: None,
                 subscription_years: None,
@@ -264,6 +265,7 @@ fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, ye
             context,
             world.state.clone(),
             domain_name,
+            0,
             mock_address(get_address_for_user(user)),
             years,
         )
@@ -294,6 +296,7 @@ fn mint_domain_with_parent(
             world.state.clone(),
             domain,
             mock_address(get_address_for_user(user)),
+            0,
             None,
             parent_opt,
             Some(1),
