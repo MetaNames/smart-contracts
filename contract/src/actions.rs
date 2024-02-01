@@ -156,21 +156,6 @@ pub fn action_renew_subscription(
     (state, vec![])
 }
 
-pub fn calculate_mint_fees(domain_name: &str, years: u32) -> u128 {
-    assert!(years > 0, "{}", ContractError::InvalidSubscriptionYears);
-
-    let length = domain_name.len();
-    let amount = match length {
-        1 => 200,
-        2 => 150,
-        3 => 100,
-        4 => 50,
-        _ => 5,
-    };
-
-    amount * years as u128
-}
-
 fn build_payout_fees_event_group(
     payer: &Address,
     payable_mint_info: &PayableMintInfo,
