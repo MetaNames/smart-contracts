@@ -40,6 +40,21 @@ pub enum UserRole {
     Whitelist {},
 }
 
+
+#[repr(C)]
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+pub struct MintFee {
+    pub chars_count: u32,
+    pub fee: u32,
+}
+
+#[repr(C)]
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
+pub struct MintFees {
+    pub mapping: Vec<MintFee>,
+    pub default_fee: u32,
+}
+
 #[repr(C)]
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct ContractConfig {
@@ -48,6 +63,7 @@ pub struct ContractConfig {
     pub mint_count_limit: u32,
     pub payable_mint_info: PayableMintInfo,
     pub whitelist_enabled: bool,
+    pub mint_fees: MintFees,
 }
 
 #[repr(C)]
@@ -60,5 +76,17 @@ impl ContractStats {
     pub fn increase_mint_count(&mut self, address: Address) {
         let count = self.mint_count.get(&address).unwrap_or(&0);
         self.mint_count.insert(address, count + 1);
+    }
+}
+
+impl MintFees {
+    pub fn get_fee(&self, chars_count: u32) -> u32 {
+        for fee in &self.mapping {
+            if fee.chars_count == chars_count {
+                return fee.fee;
+            }
+        }
+
+        self.default_fee
     }
 }
