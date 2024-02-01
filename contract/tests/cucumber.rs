@@ -69,6 +69,7 @@ fn meta_names_contract(world: &mut ContractWorld) {
     let config = ContractConfig {
         contract_enabled: true,
         payable_mint_info: PayableMintInfo {
+            id: 0,
             token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
             receiver: Some(mock_address(ALICE_ADDRESS)),
         },

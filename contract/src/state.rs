@@ -27,6 +27,7 @@ pub struct ContractState {
 )]
 pub struct PayableMintInfo {
     // Those are required but need to be optional for Default trait to work
+    pub id: u16,
     pub token: Option<Address>,
     pub receiver: Option<Address>,
 }
