@@ -256,6 +256,8 @@ pub fn on_mint_callback(
 
     assert_callback_success(&callback_ctx);
 
+    assert_and_get_payable_info(&state.config, msg.payable_token_id);
+
     action_mint(
         ctx,
         state,
@@ -457,6 +459,8 @@ pub fn on_renew_subscription_callback(
     assert_contract_enabled(&state);
 
     assert_callback_success(&callback_ctx);
+
+    assert_and_get_payable_info(&state.config, msg.payable_token_id);
 
     action_renew_subscription(ctx, state, msg.domain, msg.subscription_years)
 }

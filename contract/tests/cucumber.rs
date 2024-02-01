@@ -3,10 +3,9 @@ use std::panic::catch_unwind;
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
     contract::{
-        approve_domain, initialize, mint, on_mint_callback, renew_subscription, transfer_domain,
-        update_config, update_user_role,
+        approve_domain, initialize, mint, on_mint_callback, on_renew_subscription_callback, renew_subscription, transfer_domain, update_config, update_user_role
     },
-    msg::{InitMsg, MintMsg},
+    msg::{InitMsg, MintMsg, RenewDomainMsg},
     state::{ContractConfig, ContractState, PayableMintInfo, UserRole},
 };
 use partisia_name_system::{
@@ -132,9 +131,16 @@ fn update_contract_config(world: &mut ContractWorld, user: String, key: String, 
     }
 }
 
-#[given(expr = "{word} minted '{word}' domain without a parent")]
-#[when(expr = "{word} mints '{word}' domain without fees and a parent")]
-fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
+#[given(regex = r"(\w+) minted '(.+)' domain without a (parent)")]
+#[when(regex = r"(\w+) mints '(.+)' domain without fees and a (parent)")]
+#[when(regex = r"(\w+) mints '(.+)' domain with (.+) as payable token id and without a parent")]
+fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String, token_id_str: String) {
+    let payable_token_id = if token_id_str == "parent" {
+        0
+    } else {
+        token_id_str.parse::<u64>().unwrap()
+    };
+
     let res = catch_unwind(|| {
         on_mint_callback(
             mock_contract_context(get_address_for_user(user.clone())),
@@ -143,7 +149,7 @@ fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String) {
             MintMsg {
                 domain,
                 to: mock_address(get_address_for_user(user)),
-                payable_token_id: 0,
+                payable_token_id,
                 token_uri: None,
                 parent_id: None,
                 subscription_years: None,
@@ -244,9 +250,54 @@ fn mint_a_record(
     }
 }
 
+#[when(expr = "{word} renews '{word}' domain with {int} payable token id for {int} years")]
+fn renew_domain_on_callback(
+    world: &mut ContractWorld,
+    user: String,
+    domain_name: String,
+    payable_token_id: u64,
+    years: u32,
+) {
+    let context = mock_contract_context(get_address_for_user(user.clone()));
+
+    // To properly test renewing a domain, we need to override the expiration time of the domain
+    let expires_at = Some(world.point_in_time);
+    execute_update_expiration(
+        &context,
+        &mut world.state.pns,
+        &PnsDomainUpdateExpirationMsg {
+            domain: domain_name.clone(),
+            expires_at,
+        },
+    );
+
+    let res = catch_unwind(|| {
+        on_renew_subscription_callback(
+            context,
+            mock_successful_callback_context(),
+            world.state.clone(),
+            RenewDomainMsg {
+                domain: domain_name,
+                payer: mock_address(get_address_for_user(user)),
+                payable_token_id,
+                subscription_years: years,
+            },
+        )
+    });
+
+    if let Ok((new_state, _)) = res {
+        world.state = new_state;
+    }
+}
+
 #[given(expr = "{word} renewed '{word}' domain for {int} years")]
 #[when(expr = "{word} renews '{word}' domain for {int} years")]
-fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, years: u32) {
+fn renew_domain(
+    world: &mut ContractWorld,
+    user: String,
+    domain_name: String,
+    years: u32,
+) {
     let context = mock_contract_context(get_address_for_user(user.clone()));
 
     // To properly test renewing a domain, we need to override the expiration time of the domain
@@ -386,12 +437,16 @@ fn domain_has_no_record(world: &mut ContractWorld, domain: String, class: String
     }
 }
 
-#[then(expr = "'{word}' domain expires in {int} years")]
-fn domain_expires_in(world: &mut ContractWorld, domain: String, years: u32) {
+#[then(regex = r"'(.+)' domain (does not expire|expires) in (\d+) years")]
+fn domain_expires_in(world: &mut ContractWorld, domain: String, action: String, years: u32) {
     let domain = world.state.pns.get_domain(&domain).unwrap();
 
     let expected_expires_at = world.point_in_time + milliseconds_in_years(years as i64);
-    assert_eq!(domain.expires_at, Some(expected_expires_at));
+    if action == "expires" {
+        assert_eq!(domain.expires_at, Some(expected_expires_at));
+    } else {
+        assert_ne!(domain.expires_at, Some(expected_expires_at));
+    }
 }
 
 // This runs before everything else, so you can setup things here.
