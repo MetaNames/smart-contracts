@@ -6,23 +6,23 @@ fn test_mint_fees() {
         mapping: vec![
             Fee {
                 chars_count: 1,
-                gas: 200,
+                amount: 200,
             },
             Fee {
                 chars_count: 2,
-                gas: 150,
+                amount: 150,
             },
             Fee {
                 chars_count: 3,
-                gas: 100,
+                amount: 100,
             },
             Fee {
                 chars_count: 4,
-                gas: 50,
+                amount: 50,
             },
             Fee {
                 chars_count: 5,
-                gas: 5,
+                amount: 5,
             },
         ],
         default_fee: 1,

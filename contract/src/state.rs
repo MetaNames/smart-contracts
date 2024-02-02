@@ -47,7 +47,7 @@ pub enum UserRole {
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct Fee {
     pub chars_count: u32,
-    pub gas: u128,
+    pub amount: u128,
 }
 
 #[repr(C)]
@@ -100,7 +100,7 @@ impl Fees {
         let chars_count = domain.len() as u32;
         for fee in &self.mapping {
             if fee.chars_count == chars_count {
-                return fee.gas * decimals;
+                return fee.amount * decimals;
             }
         }
 
