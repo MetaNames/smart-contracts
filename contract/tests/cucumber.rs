@@ -3,7 +3,8 @@ use std::panic::catch_unwind;
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
     contract::{
-        approve_domain, initialize, mint, on_mint_callback, on_renew_subscription_callback, renew_subscription, transfer_domain, update_config, update_user_role
+        approve_domain, initialize, mint, on_mint_callback, on_renew_subscription_callback,
+        renew_subscription, transfer_domain, update_config, update_user_role,
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
     state::{ContractConfig, ContractState, Fees, PaymentInfo, UserRole},
@@ -75,7 +76,7 @@ fn meta_names_contract(world: &mut ContractWorld) {
                 mapping: vec![],
                 default_fee: 1,
                 decimals: 0,
-            }
+            },
         }],
         ..ContractConfig::default()
     };
@@ -297,12 +298,7 @@ fn renew_domain_on_callback(
 
 #[given(expr = "{word} renewed '{word}' domain for {int} years")]
 #[when(expr = "{word} renews '{word}' domain for {int} years")]
-fn renew_domain(
-    world: &mut ContractWorld,
-    user: String,
-    domain_name: String,
-    years: u32,
-) {
+fn renew_domain(world: &mut ContractWorld, user: String, domain_name: String, years: u32) {
     let context = mock_contract_context(get_address_for_user(user.clone()));
 
     // To properly test renewing a domain, we need to override the expiration time of the domain

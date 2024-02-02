@@ -22,15 +22,13 @@ pub struct ContractState {
 }
 
 #[repr(C)]
-#[derive(
-    ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug,
-)]
+#[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
 pub struct PaymentInfo {
     // Those are required but need to be optional for Default trait to work
     pub id: u64,
     pub token: Option<Address>,
     pub receiver: Option<Address>,
-    pub fees: Fees
+    pub fees: Fees,
 }
 
 #[repr(u8)]
@@ -41,7 +39,6 @@ pub enum UserRole {
     #[discriminant(1)]
     Whitelist {},
 }
-
 
 #[repr(C)]
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]

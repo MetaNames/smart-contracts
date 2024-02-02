@@ -1,6 +1,7 @@
 use crate::{
     actions::{
-        action_build_mint_callback, action_build_renew_callback, action_mint, action_renew_subscription, PaymentIntent
+        action_build_mint_callback, action_build_renew_callback, action_mint,
+        action_renew_subscription, PaymentIntent,
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
     state::{ContractConfig, ContractState, ContractStats, PaymentInfo, UserRole},
@@ -392,10 +393,7 @@ fn assert_contract_enabled(state: &ContractState) {
     );
 }
 
-fn assert_and_get_payment_info(
-    config: &ContractConfig,
-    payment_coin_id: u64,
-) -> PaymentInfo {
+fn assert_and_get_payment_info(config: &ContractConfig, payment_coin_id: u64) -> PaymentInfo {
     let payment_info = config.get_payment_info(payment_coin_id);
     assert!(
         payment_info.is_some(),

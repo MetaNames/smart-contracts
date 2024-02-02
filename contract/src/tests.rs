@@ -26,7 +26,7 @@ fn test_mint_fees() {
             },
         ],
         default_fee: 1,
-        decimals: 6
+        decimals: 6,
     };
 
     let fees_tuples = [

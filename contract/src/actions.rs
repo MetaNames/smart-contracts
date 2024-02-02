@@ -104,10 +104,7 @@ pub fn action_build_mint_callback(
     );
 
     let subscription_years = mint_msg.subscription_years.unwrap_or(1);
-    let mut payout_transfer_events = build_payout_fees_event_group(
-        &mint_msg.to,
-        &payment_intent,
-    );
+    let mut payout_transfer_events = build_payout_fees_event_group(&mint_msg.to, payment_intent);
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
 
@@ -126,10 +123,8 @@ pub fn action_build_renew_callback(
         ContractError::PaymentInfoNotValid
     );
 
-    let mut payout_transfer_events = build_payout_fees_event_group(
-        &renew_msg.payer,
-        &payment_intent,
-    );
+    let mut payout_transfer_events =
+        build_payout_fees_event_group(&renew_msg.payer, payment_intent);
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, renew_msg);
 
