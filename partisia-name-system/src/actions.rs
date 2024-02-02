@@ -1,6 +1,7 @@
 use contract_version_base::state::ContractVersionBase;
 use pbc_contract_common::{
-    avl_tree_map::AvlTreeMap, context::ContractContext, events::EventGroup, sorted_vec_map::SortedVecMap
+    avl_tree_map::AvlTreeMap, context::ContractContext, events::EventGroup,
+    sorted_vec_map::SortedVecMap,
 };
 
 use crate::{

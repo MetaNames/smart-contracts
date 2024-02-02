@@ -93,7 +93,7 @@ fn mint_a_record(
     data: String,
     domain: String,
 ) {
-    let res =  catch_unwind(std::panic::AssertUnwindSafe(|| {
+    let res = catch_unwind(std::panic::AssertUnwindSafe(|| {
         let mut state = take(&mut world.state);
         let context = &mock_contract_context(1);
         match action.as_str() {
