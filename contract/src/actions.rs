@@ -1,6 +1,6 @@
 use crate::{
     msg::{MPC20TransferFromMsg, MintMsg, RenewDomainMsg},
-    state::{ContractState, PayableMintInfo},
+    state::ContractState,
     ContractError,
 };
 use nft::{actions as nft_actions, msg as nft_msg};
@@ -93,24 +93,20 @@ pub fn action_mint(
 
 pub fn action_build_mint_callback(
     ctx: ContractContext,
-    payable_mint_info: PayableMintInfo,
-    mint_fees: u128,
+    payable_intent: &PaymentIntent,
     mint_msg: &MintMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
     assert!(
-        payable_mint_info.id == mint_msg.payable_token_id,
+        payable_intent.id == mint_msg.payment_coin_id,
         "{}",
-        ContractError::PayableMintInfoNotValid
+        ContractError::PayableInfoNotValid
     );
 
     let subscription_years = mint_msg.subscription_years.unwrap_or(1);
     let mut payout_transfer_events = build_payout_fees_event_group(
         &mint_msg.to,
-        &payable_mint_info,
-        mint_fees,
-        mint_msg.domain.as_str(),
-        &subscription_years,
+        &payable_intent,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
@@ -120,22 +116,19 @@ pub fn action_build_mint_callback(
 
 pub fn action_build_renew_callback(
     ctx: ContractContext,
-    payable_mint_info: PayableMintInfo,
-    mint_fees: u128,
+    payable_intent: &PaymentIntent,
     renew_msg: &RenewDomainMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
     assert!(
-        payable_mint_info.id == renew_msg.payable_token_id,
+        payable_intent.id == renew_msg.payment_coin_id,
         "{}",
-        ContractError::PayableMintInfoNotValid
+        ContractError::PayableInfoNotValid
     );
+
     let mut payout_transfer_events = build_payout_fees_event_group(
         &renew_msg.payer,
-        &payable_mint_info,
-        mint_fees,
-        renew_msg.domain.as_str(),
-        &renew_msg.subscription_years,
+        &payable_intent,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, renew_msg);
@@ -171,23 +164,23 @@ pub fn action_renew_subscription(
 
 fn build_payout_fees_event_group(
     payer: &Address,
-    payable_mint_info: &PayableMintInfo,
-    mint_fees_per_year: u128,
-    domain: &str,
-    subscription_years: &u32,
+    payable_intent: &PaymentIntent,
 ) -> EventGroupBuilder {
     let mut payout_transfer_events = EventGroup::builder();
 
-    let gas_amount = mint_fees_per_year * *subscription_years as u128;
     MPC20TransferFromMsg {
         from: *payer,
-        to: payable_mint_info.receiver.unwrap(),
-        amount: gas_amount,
+        to: payable_intent.receiver,
+        amount: payable_intent.total_fees,
     }
-    .as_interaction(
-        &mut payout_transfer_events,
-        &payable_mint_info.token.unwrap(),
-    );
+    .as_interaction(&mut payout_transfer_events, &payable_intent.token);
 
     payout_transfer_events
+}
+
+pub struct PaymentIntent {
+    pub id: u64,
+    pub token: Address,
+    pub receiver: Address,
+    pub total_fees: u128,
 }

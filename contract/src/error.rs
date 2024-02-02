@@ -16,7 +16,7 @@ pub enum ContractError {
     Unauthorized,
 
     #[error("Payable info is not valid")]
-    PayableMintInfoNotValid,
+    PayableInfoNotValid,
 
     #[error("Payable token is not set")]
     PayableTokenNotSet,

@@ -6,7 +6,7 @@ use meta_names_contract::{
         approve_domain, initialize, mint, on_mint_callback, on_renew_subscription_callback, renew_subscription, transfer_domain, update_config, update_user_role
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
-    state::{ContractConfig, ContractState, PayableMintInfo, UserRole},
+    state::{ContractConfig, ContractState, Fees, PaymentInfo, UserRole},
 };
 use partisia_name_system::{
     actions::{execute_record_mint, execute_record_update, execute_update_expiration},
@@ -67,10 +67,15 @@ fn get_record_class_given(class: String) -> RecordClass {
 fn meta_names_contract(world: &mut ContractWorld) {
     let config = ContractConfig {
         contract_enabled: true,
-        payable_mint_info: vec![PayableMintInfo {
+        payable_mint_info: vec![PaymentInfo {
             id: 0,
             token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
             receiver: Some(mock_address(ALICE_ADDRESS)),
+            fees: Fees {
+                mapping: vec![],
+                default_fee: 1,
+                decimals: 0,
+            }
         }],
         ..ContractConfig::default()
     };
@@ -135,7 +140,7 @@ fn update_contract_config(world: &mut ContractWorld, user: String, key: String, 
 #[when(regex = r"(\w+) mints '(.+)' domain without fees and a (parent)")]
 #[when(regex = r"(\w+) mints '(.+)' domain with (.+) as payable token id and without a parent")]
 fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String, token_id_str: String) {
-    let payable_token_id = if token_id_str == "parent" {
+    let payment_coin_id = if token_id_str == "parent" {
         0
     } else {
         token_id_str.parse::<u64>().unwrap()
@@ -149,7 +154,7 @@ fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String, token_
             MintMsg {
                 domain,
                 to: mock_address(get_address_for_user(user)),
-                payable_token_id,
+                payment_coin_id,
                 token_uri: None,
                 parent_id: None,
                 subscription_years: None,
@@ -255,7 +260,7 @@ fn renew_domain_on_callback(
     world: &mut ContractWorld,
     user: String,
     domain_name: String,
-    payable_token_id: u64,
+    payment_coin_id: u64,
     years: u32,
 ) {
     let context = mock_contract_context(get_address_for_user(user.clone()));
@@ -279,7 +284,7 @@ fn renew_domain_on_callback(
             RenewDomainMsg {
                 domain: domain_name,
                 payer: mock_address(get_address_for_user(user)),
-                payable_token_id,
+                payment_coin_id,
                 subscription_years: years,
             },
         )

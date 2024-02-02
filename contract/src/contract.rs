@@ -1,10 +1,9 @@
 use crate::{
     actions::{
-        action_build_mint_callback, action_build_renew_callback, action_mint,
-        action_renew_subscription,
+        action_build_mint_callback, action_build_renew_callback, action_mint, action_renew_subscription, PaymentIntent
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
-    state::{ContractConfig, ContractState, ContractStats, PayableMintInfo, UserRole},
+    state::{ContractConfig, ContractState, ContractStats, PaymentInfo, UserRole},
 };
 
 use contract_version_base::state::ContractVersionBase;
@@ -31,7 +30,7 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
     assert!(
         !payable_mint_info.is_empty(),
         "{}",
-        ContractError::PayableMintInfoNotValid
+        ContractError::PayableInfoNotValid
     );
 
     payable_mint_info.into_iter().for_each(|info| {
@@ -179,7 +178,7 @@ pub fn mint(
     state: ContractState,
     domain: String,
     to: Address,
-    payable_token_id: u64,
+    payment_coin_id: u64,
     token_uri: Option<String>,
     parent_id: Option<String>,
     subscription_years: Option<u32>,
@@ -222,17 +221,21 @@ pub fn mint(
             );
         }
 
-        let payable_mint_info = assert_and_get_payable_info(config, payable_token_id);
+        let payable_mint_info = assert_and_get_payment_info(config, payment_coin_id);
         let subscription_years = subscription_years.unwrap_or(1);
-        let gas_fees = config.mint_fees.get_gas_fees(&domain);
+        let total_fees = payable_mint_info.fees.get(&domain) * subscription_years as u128;
         let payout_transfer_events = action_build_mint_callback(
             ctx,
-            payable_mint_info,
-            gas_fees,
+            &PaymentIntent {
+                id: payment_coin_id,
+                receiver: payable_mint_info.receiver.unwrap(),
+                token: payable_mint_info.token.unwrap(),
+                total_fees,
+            },
             &MintMsg {
                 domain,
                 to,
-                payable_token_id,
+                payment_coin_id,
                 token_uri,
                 parent_id,
                 subscription_years: Some(subscription_years),
@@ -257,7 +260,7 @@ pub fn on_mint_callback(
 
     assert_callback_success(&callback_ctx);
 
-    assert_and_get_payable_info(&state.config, msg.payable_token_id);
+    assert_and_get_payment_info(&state.config, msg.payment_coin_id);
 
     action_mint(
         ctx,
@@ -389,15 +392,15 @@ fn assert_contract_enabled(state: &ContractState) {
     );
 }
 
-fn assert_and_get_payable_info(
+fn assert_and_get_payment_info(
     config: &ContractConfig,
-    payable_token_id: u64,
-) -> PayableMintInfo {
-    let payable_mint_info = config.get_payable_mint_info(payable_token_id);
+    payment_coin_id: u64,
+) -> PaymentInfo {
+    let payable_mint_info = config.get_payable_mint_info(payment_coin_id);
     assert!(
         payable_mint_info.is_some(),
         "{}",
-        ContractError::PayableMintInfoNotValid
+        ContractError::PayableInfoNotValid
     );
 
     payable_mint_info.unwrap()
@@ -408,7 +411,7 @@ pub fn renew_subscription(
     ctx: ContractContext,
     mut state: ContractState,
     domain: String,
-    payable_token_id: u64,
+    payment_coin_id: u64,
     payer: Address,
     subscription_years: u32,
 ) -> (ContractState, Vec<EventGroup>) {
@@ -431,15 +434,19 @@ pub fn renew_subscription(
         state = new_state;
         events = renew_events;
     } else {
-        let gas_fees = state.config.mint_fees.get_gas_fees(&domain);
-        let payable_mint_info = assert_and_get_payable_info(&state.config, payable_token_id);
+        let payment_info = assert_and_get_payment_info(&state.config, payment_coin_id);
+        let total_fees = payment_info.fees.get(&domain) * subscription_years as u128;
         events = action_build_renew_callback(
             ctx,
-            payable_mint_info,
-            gas_fees,
+            &PaymentIntent {
+                id: payment_coin_id,
+                receiver: payment_info.receiver.unwrap(),
+                token: payment_info.token.unwrap(),
+                total_fees,
+            },
             &RenewDomainMsg {
                 domain,
-                payable_token_id,
+                payment_coin_id,
                 payer,
                 subscription_years,
             },
@@ -461,7 +468,7 @@ pub fn on_renew_subscription_callback(
 
     assert_callback_success(&callback_ctx);
 
-    assert_and_get_payable_info(&state.config, msg.payable_token_id);
+    assert_and_get_payment_info(&state.config, msg.payment_coin_id);
 
     action_renew_subscription(ctx, state, msg.domain, msg.subscription_years)
 }

@@ -27,7 +27,7 @@ pub struct MintMsg {
     /// receiver address
     pub to: Address,
     /// BYOC token id
-    pub payable_token_id: u64,
+    pub payment_coin_id: u64,
     /// optional token_uri
     pub token_uri: Option<String>,
     /// optional parent
@@ -54,6 +54,6 @@ pub struct RenewDomainMsg {
     pub domain: String,
     pub payer: Address,
     /// BYOC token id
-    pub payable_token_id: u64,
+    pub payment_coin_id: u64,
     pub subscription_years: u32,
 }

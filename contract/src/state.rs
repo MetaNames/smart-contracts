@@ -23,13 +23,14 @@ pub struct ContractState {
 
 #[repr(C)]
 #[derive(
-    ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Copy, Clone, Debug,
+    ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug,
 )]
-pub struct PayableMintInfo {
+pub struct PaymentInfo {
     // Those are required but need to be optional for Default trait to work
     pub id: u64,
     pub token: Option<Address>,
     pub receiver: Option<Address>,
+    pub fees: Fees
 }
 
 #[repr(u8)]
@@ -44,16 +45,17 @@ pub enum UserRole {
 
 #[repr(C)]
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
-pub struct MintFee {
+pub struct Fee {
     pub chars_count: u32,
     pub gas: u128,
 }
 
 #[repr(C)]
 #[derive(ReadWriteRPC, ReadWriteState, CreateTypeSpec, PartialEq, Eq, Default, Clone, Debug)]
-pub struct MintFees {
-    pub mapping: Vec<MintFee>,
+pub struct Fees {
+    pub mapping: Vec<Fee>,
     pub default_fee: u128,
+    pub decimals: u32,
 }
 
 #[repr(C)]
@@ -62,9 +64,8 @@ pub struct ContractConfig {
     pub contract_enabled: bool,
     pub mint_count_limit_enabled: bool,
     pub mint_count_limit: u32,
-    pub payable_mint_info: Vec<PayableMintInfo>,
+    pub payable_mint_info: Vec<PaymentInfo>,
     pub whitelist_enabled: bool,
-    pub mint_fees: MintFees,
 }
 
 #[repr(C)]
@@ -74,10 +75,10 @@ pub struct ContractStats {
 }
 
 impl ContractConfig {
-    pub fn get_payable_mint_info(&self, id: u64) -> Option<PayableMintInfo> {
+    pub fn get_payable_mint_info(&self, id: u64) -> Option<PaymentInfo> {
         for info in &self.payable_mint_info {
             if info.id == id {
-                return Some(*info);
+                return Some(info.clone());
             }
         }
 
@@ -92,15 +93,17 @@ impl ContractStats {
     }
 }
 
-impl MintFees {
-    pub fn get_gas_fees(&self, domain: &str) -> u128 {
+impl Fees {
+    pub fn get(&self, domain: &str) -> u128 {
+        let decimals = 10_u128.pow(self.decimals);
+
         let chars_count = domain.len() as u32;
         for fee in &self.mapping {
             if fee.chars_count == chars_count {
-                return fee.gas;
+                return fee.gas * decimals;
             }
         }
 
-        self.default_fee
+        self.default_fee * decimals
     }
 }
