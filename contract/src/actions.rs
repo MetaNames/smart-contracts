@@ -178,7 +178,7 @@ fn build_payout_fees_event_group(
 ) -> EventGroupBuilder {
     let mut payout_transfer_events = EventGroup::builder();
 
-    let gas_amount = mint_fees_per_year * subscription_years.clone() as u128;
+    let gas_amount = mint_fees_per_year * *subscription_years as u128;
     MPC20TransferFromMsg {
         from: *payer,
         to: payable_mint_info.receiver.unwrap(),

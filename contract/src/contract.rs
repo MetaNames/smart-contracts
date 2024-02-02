@@ -29,12 +29,12 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
     let payable_mint_info = msg.config.payable_mint_info.clone();
     assert!(
-        payable_mint_info.len() > 0,
+        !payable_mint_info.is_empty(),
         "{}",
         ContractError::PayableMintInfoNotValid
     );
 
-    let payable_mint_info = payable_mint_info.into_iter().for_each(|info| {
+    payable_mint_info.into_iter().for_each(|info| {
         assert!(
             info.token.is_some(),
             "{}",
@@ -172,6 +172,7 @@ pub fn set_approval_for_all(
     (state, events)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[action(shortname = 0x09)]
 pub fn mint(
     ctx: ContractContext,
@@ -204,7 +205,7 @@ pub fn mint(
 
         events.extend(mint_events);
     } else {
-        let config = mut_state.config.clone();
+        let config = &mut_state.config;
         if config.whitelist_enabled {
             let is_whitelisted = mut_state
                 .access_control
@@ -221,7 +222,7 @@ pub fn mint(
             );
         }
 
-        let payable_mint_info = assert_and_get_payable_info(&config, payable_token_id);
+        let payable_mint_info = assert_and_get_payable_info(config, payable_token_id);
         let subscription_years = subscription_years.unwrap_or(1);
         let gas_fees = config.mint_fees.get_gas_fees(&domain);
         let payout_transfer_events = action_build_mint_callback(
@@ -231,7 +232,7 @@ pub fn mint(
             &MintMsg {
                 domain,
                 to,
-                payable_token_id: payable_token_id,
+                payable_token_id,
                 token_uri,
                 parent_id,
                 subscription_years: Some(subscription_years),
@@ -438,7 +439,7 @@ pub fn renew_subscription(
             gas_fees,
             &RenewDomainMsg {
                 domain,
-                payable_token_id: payable_token_id,
+                payable_token_id,
                 payer,
                 subscription_years,
             },

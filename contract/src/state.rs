@@ -77,7 +77,7 @@ impl ContractConfig {
     pub fn get_payable_mint_info(&self, id: u64) -> Option<PayableMintInfo> {
         for info in &self.payable_mint_info {
             if info.id == id {
-                return Some(info.clone());
+                return Some(*info);
             }
         }
 
