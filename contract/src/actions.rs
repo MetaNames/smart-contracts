@@ -93,20 +93,20 @@ pub fn action_mint(
 
 pub fn action_build_mint_callback(
     ctx: ContractContext,
-    payable_intent: &PaymentIntent,
+    payment_intent: &PaymentIntent,
     mint_msg: &MintMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
     assert!(
-        payable_intent.id == mint_msg.payment_coin_id,
+        payment_intent.id == mint_msg.payment_coin_id,
         "{}",
-        ContractError::PayableInfoNotValid
+        ContractError::PaymentInfoNotValid
     );
 
     let subscription_years = mint_msg.subscription_years.unwrap_or(1);
     let mut payout_transfer_events = build_payout_fees_event_group(
         &mint_msg.to,
-        &payable_intent,
+        &payment_intent,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, mint_msg);
@@ -116,19 +116,19 @@ pub fn action_build_mint_callback(
 
 pub fn action_build_renew_callback(
     ctx: ContractContext,
-    payable_intent: &PaymentIntent,
+    payment_intent: &PaymentIntent,
     renew_msg: &RenewDomainMsg,
     callback_byte: u32,
 ) -> Vec<EventGroup> {
     assert!(
-        payable_intent.id == renew_msg.payment_coin_id,
+        payment_intent.id == renew_msg.payment_coin_id,
         "{}",
-        ContractError::PayableInfoNotValid
+        ContractError::PaymentInfoNotValid
     );
 
     let mut payout_transfer_events = build_payout_fees_event_group(
         &renew_msg.payer,
-        &payable_intent,
+        &payment_intent,
     );
 
     build_msg_callback(&mut payout_transfer_events, callback_byte, renew_msg);
@@ -164,16 +164,16 @@ pub fn action_renew_subscription(
 
 fn build_payout_fees_event_group(
     payer: &Address,
-    payable_intent: &PaymentIntent,
+    payment_intent: &PaymentIntent,
 ) -> EventGroupBuilder {
     let mut payout_transfer_events = EventGroup::builder();
 
     MPC20TransferFromMsg {
         from: *payer,
-        to: payable_intent.receiver,
-        amount: payable_intent.total_fees,
+        to: payment_intent.receiver,
+        amount: payment_intent.total_fees,
     }
-    .as_interaction(&mut payout_transfer_events, &payable_intent.token);
+    .as_interaction(&mut payout_transfer_events, &payment_intent.token);
 
     payout_transfer_events
 }

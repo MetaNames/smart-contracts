@@ -26,23 +26,23 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[init]
 pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<EventGroup>) {
-    let payable_mint_info = msg.config.payable_mint_info.clone();
+    let payment_info = msg.config.payment_info.clone();
     assert!(
-        !payable_mint_info.is_empty(),
+        !payment_info.is_empty(),
         "{}",
-        ContractError::PayableInfoNotValid
+        ContractError::PaymentInfoNotValid
     );
 
-    payable_mint_info.into_iter().for_each(|info| {
+    payment_info.into_iter().for_each(|info| {
         assert!(
             info.token.is_some(),
             "{}",
-            ContractError::PayableTokenNotSet
+            ContractError::PaymentTokenNotSet
         );
         assert!(
             info.receiver.is_some(),
             "{}",
-            ContractError::PayableReceiverNotSet
+            ContractError::PaymentReceiverNotSet
         );
     });
 
@@ -221,15 +221,15 @@ pub fn mint(
             );
         }
 
-        let payable_mint_info = assert_and_get_payment_info(config, payment_coin_id);
+        let payment_info = assert_and_get_payment_info(config, payment_coin_id);
         let subscription_years = subscription_years.unwrap_or(1);
-        let total_fees = payable_mint_info.fees.get(&domain) * subscription_years as u128;
+        let total_fees = payment_info.fees.get(&domain) * subscription_years as u128;
         let payout_transfer_events = action_build_mint_callback(
             ctx,
             &PaymentIntent {
                 id: payment_coin_id,
-                receiver: payable_mint_info.receiver.unwrap(),
-                token: payable_mint_info.token.unwrap(),
+                receiver: payment_info.receiver.unwrap(),
+                token: payment_info.token.unwrap(),
                 total_fees,
             },
             &MintMsg {
@@ -396,14 +396,14 @@ fn assert_and_get_payment_info(
     config: &ContractConfig,
     payment_coin_id: u64,
 ) -> PaymentInfo {
-    let payable_mint_info = config.get_payable_mint_info(payment_coin_id);
+    let payment_info = config.get_payment_info(payment_coin_id);
     assert!(
-        payable_mint_info.is_some(),
+        payment_info.is_some(),
         "{}",
-        ContractError::PayableInfoNotValid
+        ContractError::PaymentInfoNotValid
     );
 
-    payable_mint_info.unwrap()
+    payment_info.unwrap()
 }
 
 #[action(shortname = 0x26)]

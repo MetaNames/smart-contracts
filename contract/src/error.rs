@@ -15,14 +15,14 @@ pub enum ContractError {
     #[error("Unauthorized")]
     Unauthorized,
 
-    #[error("Payable info is not valid")]
-    PayableInfoNotValid,
+    #[error("Payment info is not valid")]
+    PaymentInfoNotValid,
 
-    #[error("Payable token is not set")]
-    PayableTokenNotSet,
+    #[error("Payment token is not set")]
+    PaymentTokenNotSet,
 
-    #[error("Payable receiver is not set")]
-    PayableReceiverNotSet,
+    #[error("Payment receiver is not set")]
+    PaymentReceiverNotSet,
 
     #[error("User is not whitelisted")]
     UserNotWhitelisted,

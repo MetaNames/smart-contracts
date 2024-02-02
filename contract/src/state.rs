@@ -64,7 +64,7 @@ pub struct ContractConfig {
     pub contract_enabled: bool,
     pub mint_count_limit_enabled: bool,
     pub mint_count_limit: u32,
-    pub payable_mint_info: Vec<PaymentInfo>,
+    pub payment_info: Vec<PaymentInfo>,
     pub whitelist_enabled: bool,
 }
 
@@ -75,8 +75,8 @@ pub struct ContractStats {
 }
 
 impl ContractConfig {
-    pub fn get_payable_mint_info(&self, id: u64) -> Option<PaymentInfo> {
-        for info in &self.payable_mint_info {
+    pub fn get_payment_info(&self, id: u64) -> Option<PaymentInfo> {
+        for info in &self.payment_info {
             if info.id == id {
                 return Some(info.clone());
             }

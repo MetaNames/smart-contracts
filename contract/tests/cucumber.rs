@@ -21,7 +21,7 @@ use utils::{
 const SYSTEM_ADDRESS: u8 = 0;
 const ALICE_ADDRESS: u8 = 1;
 const BOB_ADDRESS: u8 = 2;
-const PAYABLE_TOKEN_ADDRESS: u8 = 10;
+const PAYMENT_TOKEN_ADDRESS: u8 = 10;
 
 #[derive(Debug, Default, World)]
 pub struct ContractWorld {
@@ -67,9 +67,9 @@ fn get_record_class_given(class: String) -> RecordClass {
 fn meta_names_contract(world: &mut ContractWorld) {
     let config = ContractConfig {
         contract_enabled: true,
-        payable_mint_info: vec![PaymentInfo {
+        payment_info: vec![PaymentInfo {
             id: 0,
-            token: Some(mock_address(PAYABLE_TOKEN_ADDRESS)),
+            token: Some(mock_address(PAYMENT_TOKEN_ADDRESS)),
             receiver: Some(mock_address(ALICE_ADDRESS)),
             fees: Fees {
                 mapping: vec![],
@@ -138,7 +138,7 @@ fn update_contract_config(world: &mut ContractWorld, user: String, key: String, 
 
 #[given(regex = r"(\w+) minted '(.+)' domain without a (parent)")]
 #[when(regex = r"(\w+) mints '(.+)' domain without fees and a (parent)")]
-#[when(regex = r"(\w+) mints '(.+)' domain with (.+) as payable token id and without a parent")]
+#[when(regex = r"(\w+) mints '(.+)' domain with (.+) as payment token id and without a parent")]
 fn mint_a_domain(world: &mut ContractWorld, user: String, domain: String, token_id_str: String) {
     let payment_coin_id = if token_id_str == "parent" {
         0
@@ -255,7 +255,7 @@ fn mint_a_record(
     }
 }
 
-#[when(expr = "{word} renews '{word}' domain with {int} payable token id for {int} years")]
+#[when(expr = "{word} renews '{word}' domain with {int} payment token id for {int} years")]
 fn renew_domain_on_callback(
     world: &mut ContractWorld,
     user: String,

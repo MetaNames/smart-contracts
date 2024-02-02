@@ -42,9 +42,9 @@ Feature: Mint feature
     When Alice mints 'meta.name' domain without a parent
     Then 'meta.name' domain is not minted
 
-  Scenario: The minting process of a domain without any parent, with a wrong payable token id, fails
+  Scenario: The minting process of a domain without any parent, with a wrong payment token id, fails
     Given a meta names contract
-    When Alice mints 'meta.name' domain with 1 as payable token id and without a parent
+    When Alice mints 'meta.name' domain with 1 as payment token id and without a parent
     Then 'meta.name' domain is not minted
 
   Scenario: The mint with the owned parent occurs properly
