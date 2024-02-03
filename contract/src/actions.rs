@@ -18,6 +18,13 @@ use utils::{
     time::milliseconds_in_years,
 };
 
+pub struct PaymentIntent {
+    pub id: u64,
+    pub token: Address,
+    pub receiver: Address,
+    pub total_fees: u128,
+}
+
 /// Action to mint contract
 pub fn action_mint(
     ctx: ContractContext,
@@ -171,11 +178,4 @@ fn build_payout_fees_event_group(
     .as_interaction(&mut payout_transfer_events, &payment_intent.token);
 
     payout_transfer_events
-}
-
-pub struct PaymentIntent {
-    pub id: u64,
-    pub token: Address,
-    pub receiver: Address,
-    pub total_fees: u128,
 }
