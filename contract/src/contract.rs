@@ -385,25 +385,6 @@ pub fn update_config(
     (state, vec![])
 }
 
-fn assert_contract_enabled(state: &ContractState) {
-    assert!(
-        state.config.contract_enabled,
-        "{}",
-        ContractError::ContractDisabled
-    );
-}
-
-fn assert_and_get_payment_info(config: &ContractConfig, payment_coin_id: u64) -> PaymentInfo {
-    let payment_info = config.get_payment_info(payment_coin_id);
-    assert!(
-        payment_info.is_some(),
-        "{}",
-        ContractError::PaymentInfoNotValid
-    );
-
-    payment_info.unwrap()
-}
-
 #[action(shortname = 0x26)]
 pub fn renew_subscription(
     ctx: ContractContext,
@@ -469,4 +450,23 @@ pub fn on_renew_subscription_callback(
     assert_and_get_payment_info(&state.config, msg.payment_coin_id);
 
     action_renew_subscription(ctx, state, msg.domain, msg.subscription_years)
+}
+
+fn assert_contract_enabled(state: &ContractState) {
+    assert!(
+        state.config.contract_enabled,
+        "{}",
+        ContractError::ContractDisabled
+    );
+}
+
+fn assert_and_get_payment_info(config: &ContractConfig, payment_coin_id: u64) -> PaymentInfo {
+    let payment_info = config.get_payment_info(payment_coin_id);
+    assert!(
+        payment_info.is_some(),
+        "{}",
+        ContractError::PaymentInfoNotValid
+    );
+
+    payment_info.unwrap()
 }
