@@ -36,13 +36,13 @@ jobs:
           zip proxy_contract.zip contract_proxy.wasm contract_proxy.abi
 
       - name: Upload meta names contract artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: meta_names_contract
           path: target/wasm32-unknown-unknown/release/meta_names_contract.zip
 
       - name: Upload proxy contract artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: meta_names_contract
+          name: proxy_contract
           path: target/wasm32-unknown-unknown/release/proxy_contract.zip
