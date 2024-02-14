@@ -28,14 +28,21 @@ jobs:
       - name: Fetch dependencies
         run: cargo fetch --target wasm32-unknown-unknown
 
-      - name: Build release contract
+      - name: Build contracts
         run: |
           cargo partisia-contract build --release
           cd target/wasm32-unknown-unknown/release
           zip meta_names_contract.zip meta_names_contract.wasm meta_names_contract.abi
+          zip proxy_contract.zip contract_proxy.wasm contract_proxy.abi
 
-      - name: Upload contract artifacts
+      - name: Upload meta names contract artifact
         uses: actions/upload-artifact@v2
         with:
           name: meta_names_contract
           path: target/wasm32-unknown-unknown/release/meta_names_contract.zip
+
+      - name: Upload proxy contract artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: meta_names_contract
+          path: target/wasm32-unknown-unknown/release/proxy_contract.zip
