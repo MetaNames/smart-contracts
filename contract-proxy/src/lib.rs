@@ -2,8 +2,8 @@
 
 #[macro_use]
 extern crate pbc_contract_codegen;
-extern crate pbc_contract_common;
 extern crate contract_version_base;
+extern crate pbc_contract_common;
 
 use contract_version_base::state::ContractVersionBase;
 
