@@ -2,8 +2,12 @@
 
 #[macro_use]
 extern crate pbc_contract_codegen;
+extern crate pbc_contract_common;
+extern crate contract_version_base;
 
-use pbc_contract_common::address::Address;
+use contract_version_base::state::ContractVersionBase;
+
+use pbc_contract_common::{address::Address, context::ContractContext};
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -11,7 +15,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// State of the contract
 #[state]
 struct ContractState {
-    address: Address,
+    pub address: Address,
+    pub version: ContractVersionBase,
 }
 
 /// Initialize a new Nickname contract.
@@ -24,8 +29,11 @@ struct ContractState {
 ///
 /// The initial state of the contract
 #[init]
-fn initialize(ctx: ContractContext, address: Address) -> ContractState {
-    ContractState { address }
+fn initialize(_ctx: ContractContext, address: Address) -> ContractState {
+    ContractState {
+        address,
+        version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
+    }
 }
 
 /// Update contract state
