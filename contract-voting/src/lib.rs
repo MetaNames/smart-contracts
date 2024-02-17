@@ -121,3 +121,13 @@ pub fn count(ctx: ContractContext, mut state: VoteState) -> VoteState {
     state.result = Some(vote_passed);
     state
 }
+
+#[action(shortname = 0x03)]
+pub fn add_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Address>) -> VoteState {
+    assert_eq!(state.result, None, "The votes have already been counted");
+
+    let mut unique_voters: SortedVecSet<Address> = voters.iter().cloned().collect();
+
+    state.voters.append(&mut unique_voters);
+    state
+}
