@@ -116,7 +116,11 @@ pub fn add_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Addres
 /// Remove voters from the list of eligible voters.
 /// Voters can be removed until the deadline.
 #[action(shortname = 0x04)]
-pub fn remove_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Address>) -> VoteState {
+pub fn remove_voters(
+    ctx: ContractContext,
+    mut state: VoteState,
+    voters: Vec<Address>,
+) -> VoteState {
     assert_eq!(state.result, None, "The votes have already been counted");
 
     let voters_to_remove: SortedVecSet<Address> = voters.iter().cloned().collect();
