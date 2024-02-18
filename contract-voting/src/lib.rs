@@ -75,17 +75,6 @@ pub fn initialize(
 /// Cast a vote for the proposal.
 /// The vote is cast by the sender of the action.
 /// Voters can cast and update their vote until the deadline.
-///
-/// # Arguments
-///
-/// * `ctx` - the contract context containing information about the sender and the blockchain.
-/// * `state` - the current state of the vote.
-/// * `vote` - the vote being cast by the sender.
-///
-/// # Returns
-///
-/// The updated vote state reflecting the newly cast vote.
-///
 #[action(shortname = 0x01)]
 pub fn vote(ctx: ContractContext, mut state: VoteState, vote: bool) -> VoteState {
     assert!(
@@ -99,16 +88,6 @@ pub fn vote(ctx: ContractContext, mut state: VoteState, vote: bool) -> VoteState
 
 /// Count the votes and publish the result.
 /// Counting will fail if the deadline has not passed.
-///
-/// # Arguments
-///
-/// * `ctx` - the contract context containing information about the sender and blockchain.
-/// * `state` - the current state of the vote.
-///
-/// # Returns
-///
-/// The updated state reflecting the result of the vote.
-///
 #[action(shortname = 0x02)]
 pub fn count(ctx: ContractContext, mut state: VoteState) -> VoteState {
     assert_eq!(state.result, None, "The votes have already been counted");
@@ -122,6 +101,8 @@ pub fn count(ctx: ContractContext, mut state: VoteState) -> VoteState {
     state
 }
 
+/// Add voters to the list of eligible voters.
+/// Voters can be added until the deadline.
 #[action(shortname = 0x03)]
 pub fn add_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Address>) -> VoteState {
     assert_eq!(state.result, None, "The votes have already been counted");
@@ -132,6 +113,8 @@ pub fn add_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Addres
     state
 }
 
+/// Remove voters from the list of eligible voters.
+/// Voters can be removed until the deadline.
 #[action(shortname = 0x04)]
 pub fn remove_voters(ctx: ContractContext, mut state: VoteState, voters: Vec<Address>) -> VoteState {
     assert_eq!(state.result, None, "The votes have already been counted");
