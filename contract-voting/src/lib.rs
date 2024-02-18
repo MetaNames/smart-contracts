@@ -8,8 +8,9 @@ extern crate pbc_contract_common;
 
 use contract_version_base::state::ContractVersionBase;
 use pbc_contract_common::address::Address;
+use pbc_contract_common::avl_tree_map::AvlTreeMap;
 use pbc_contract_common::context::ContractContext;
-use pbc_contract_common::sorted_vec_map::{SortedVecMap, SortedVecSet};
+use pbc_contract_common::sorted_vec_map::SortedVecSet;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -26,7 +27,7 @@ pub struct VoteState {
     pub deadline_utc_millis: i64,
     /// The votes cast by the voters.
     /// true is for the proposal, false is against.
-    pub votes: SortedVecMap<Address, bool>,
+    pub votes: AvlTreeMap<Address, bool>,
     /// The result of the vote.
     /// None until the votes has been counted,
     /// Some(true) if the proposal passed,
@@ -66,7 +67,7 @@ pub fn initialize(
         proposal_id,
         voters: unique_voters,
         deadline_utc_millis,
-        votes: SortedVecMap::new(),
+        votes: AvlTreeMap::new(),
         result: None,
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     }
@@ -95,7 +96,7 @@ pub fn count(ctx: ContractContext, mut state: VoteState) -> VoteState {
         ctx.block_production_time >= state.deadline_utc_millis,
         "The deadline has not yet passed"
     );
-    let voters_approving = state.votes.values().filter(|vote| **vote).count();
+    let voters_approving = state.votes.iter().filter(|(_, v)| *v).count();
     let vote_passed = voters_approving > state.voters.len() / 2;
     state.result = Some(vote_passed);
     state
@@ -126,6 +127,8 @@ pub fn remove_voters(
     let voters_to_remove: SortedVecSet<Address> = voters.iter().cloned().collect();
 
     state.voters.retain(|v| !voters_to_remove.contains(v));
-    state.votes.retain(|k, v| !voters_to_remove.contains(k));
+    for key in voters_to_remove.iter() {
+        state.votes.remove(key);
+    }
     state
 }
