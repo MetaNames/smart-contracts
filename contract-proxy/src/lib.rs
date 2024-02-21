@@ -54,7 +54,10 @@ fn update_address(
     mut state: ContractState,
     address: Address,
 ) -> ContractState {
-    assert_eq!(state.owner, ctx.sender, "Only the owner can update the address");
+    assert_eq!(
+        state.owner, ctx.sender,
+        "Only the owner can update the address"
+    );
 
     state.address = address;
 
