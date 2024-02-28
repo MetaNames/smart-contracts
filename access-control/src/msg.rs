@@ -2,6 +2,7 @@ use pbc_contract_common::address::Address;
 
 pub struct ACInitMsg {
     pub admin_addresses: Vec<Address>,
+    pub additional_roles: Vec<u8>,
 }
 
 pub struct ACRoleMsg {

@@ -1,6 +1,7 @@
 use contract_version_base::state::ContractVersionBase;
 use pbc_contract_common::{
-    context::ContractContext, events::EventGroup, sorted_vec_map::SortedVecMap,
+    avl_tree_map::AvlTreeMap, context::ContractContext, events::EventGroup,
+    sorted_vec_map::SortedVecMap,
 };
 
 use crate::{
@@ -15,18 +16,16 @@ use crate::{
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// ## Description
 /// Inits contract state.
 /// Returns [`(PartisiaNameSystemState, Vec<EventGroup>)`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
 pub fn execute_init(ctx: &ContractContext) -> PartisiaNameSystemState {
     PartisiaNameSystemState {
-        domains: SortedVecMap::new(),
+        domains: AvlTreeMap::new(),
         version: ContractVersionBase::new(CONTRACT_NAME, CONTRACT_VERSION),
     }
 }
 
-/// ## Description
 /// Mint a new token. Can only be executed by minter account.
 /// Returns [`Vec<EventGroup>`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
@@ -60,7 +59,6 @@ pub fn execute_mint(
     vec![]
 }
 
-/// ## Description
 /// Mint a new record for a domain
 /// Returns [`Vec<EventGroup>`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
@@ -81,13 +79,13 @@ pub fn execute_record_mint(
         ContractError::RecordDataTooLong
     );
 
-    let domain = state.domains.get_mut(&msg.domain).unwrap();
+    let mut domain = state.domains.get(&msg.domain).unwrap();
     domain.mint_record(&msg.class, &msg.data);
+    state.domains.insert(msg.domain.clone(), domain);
 
     vec![]
 }
 
-/// ## Description
 /// Update a record for a domain
 /// Returns [`Vec<EventGroup>`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
@@ -103,7 +101,7 @@ pub fn execute_record_update(
         ContractError::DomainExpired
     );
 
-    let domain = state.domains.get_mut(&msg.domain).unwrap();
+    let mut domain = state.domains.get(&msg.domain).unwrap();
     assert!(
         domain.is_record_minted(&msg.class),
         "{}",
@@ -111,11 +109,11 @@ pub fn execute_record_update(
     );
 
     domain.update_record_data(&msg.class, &msg.data);
+    state.domains.insert(msg.domain.clone(), domain);
 
     vec![]
 }
 
-/// ## Description
 /// Delete a record for a domain
 /// Returns [`Vec<EventGroup>`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
@@ -131,7 +129,7 @@ pub fn execute_record_delete(
         ContractError::DomainExpired
     );
 
-    let domain = state.domains.get_mut(&msg.domain).unwrap();
+    let mut domain = state.domains.get(&msg.domain).unwrap();
     assert!(
         domain.is_record_minted(&msg.class),
         "{}",
@@ -139,11 +137,11 @@ pub fn execute_record_delete(
     );
 
     domain.delete_record(&msg.class);
+    state.domains.insert(msg.domain.clone(), domain);
 
     vec![]
 }
 
-/// ## Description
 /// Delete all records for a domain
 /// Does not require the domain to be active
 pub fn execute_record_delete_all(
@@ -153,8 +151,9 @@ pub fn execute_record_delete_all(
 ) -> Vec<EventGroup> {
     assert!(state.is_minted(&msg.domain), "{}", ContractError::NotFound);
 
-    let domain = state.domains.get_mut(&msg.domain).unwrap();
+    let mut domain = state.domains.get(&msg.domain).unwrap();
     domain.records = SortedVecMap::new();
+    state.domains.insert(msg.domain.clone(), domain);
 
     vec![]
 }
@@ -168,13 +167,13 @@ pub fn execute_update_expiration(
 ) -> Vec<EventGroup> {
     assert!(state.is_minted(&msg.domain), "{}", ContractError::NotFound);
 
-    let domain = state.domains.get_mut(&msg.domain).unwrap();
+    let mut domain = state.domains.get(&msg.domain).unwrap();
     domain.expires_at = msg.expires_at;
+    state.domains.insert(msg.domain.clone(), domain);
 
     vec![]
 }
 
-/// ## Description
 /// Validate the domain name
 /// Returns [`()`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]
@@ -186,7 +185,6 @@ pub fn validate_domain(domain: &str) {
     )
 }
 
-/// ## Description
 /// Validate the domain name with parent
 /// Returns [`()`] if operation was successful,
 /// otherwise panics with error message defined in [`ContractError`]

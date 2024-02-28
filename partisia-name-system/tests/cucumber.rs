@@ -1,4 +1,4 @@
-use std::panic::catch_unwind;
+use std::{mem::take, panic::catch_unwind};
 
 use cucumber::{given, then, when, World};
 use partisia_name_system::{
@@ -58,11 +58,11 @@ fn mint_a_domain(world: &mut PartisiaNameSystemWorld, domain: String) {
         expires_at: Some(tomorrow_timestamp()),
     };
 
-    let res = catch_unwind(|| {
-        let mut state = world.state.clone();
+    let res = catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut state = take(&mut world.state);
         execute_mint(&mock_contract_context(1), &mut state, &msg);
         state
-    });
+    }));
 
     if let Ok(new_state) = res {
         world.state = new_state;
@@ -79,11 +79,11 @@ fn mint_a_domain_with_parent(world: &mut PartisiaNameSystemWorld, domain: String
         expires_at: None,
     };
 
-    let res = catch_unwind(|| {
-        let mut state = world.state.clone();
+    let res = catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut state = take(&mut world.state);
         execute_mint(&mock_contract_context(1), &mut state, &msg);
         state
-    });
+    }));
 
     if let Ok(new_state) = res {
         world.state = new_state;
@@ -99,8 +99,8 @@ fn mint_a_record(
     data: String,
     domain: String,
 ) {
-    let res = catch_unwind(|| {
-        let mut state = world.state.clone();
+    let res = catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut state = take(&mut world.state);
         let context = &mock_contract_context(1);
         match action.as_str() {
             "mints" | "minted" => {
@@ -126,7 +126,7 @@ fn mint_a_record(
         };
 
         state
-    });
+    }));
 
     if let Ok(new_state) = res {
         world.state = new_state;

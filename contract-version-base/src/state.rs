@@ -1,8 +1,8 @@
 use create_type_spec_derive::CreateTypeSpec;
 use read_write_state_derive::ReadWriteState;
 
-/// ## Description
 /// This structure describes contract version base state
+#[repr(C)]
 #[derive(ReadWriteState, CreateTypeSpec, Clone, PartialEq, Eq, Debug, Default)]
 pub struct ContractVersionBase {
     /// contract name
@@ -12,7 +12,6 @@ pub struct ContractVersionBase {
 }
 
 impl ContractVersionBase {
-    /// ## Description
     /// Creates contract version base extension state
     /// ## Params
     /// * **name** is an object of type [`str`]
@@ -25,7 +24,6 @@ impl ContractVersionBase {
         }
     }
 
-    /// ## Description
     /// Sets new name and version
     /// ## Params
     /// * **name** is an object of type [`str`]
@@ -36,13 +34,11 @@ impl ContractVersionBase {
         self.version = version.to_string();
     }
 
-    /// ## Description
     /// Returns current contract name
     pub fn get_contract_name(&self) -> String {
         self.name.to_string()
     }
 
-    /// ## Description
     /// Returns current contract version
     pub fn get_contract_version(&self) -> String {
         self.version.clone()

@@ -7,7 +7,6 @@ use utils::events::IntoShortnameRPCEvent;
 
 use crate::state::ContractConfig;
 
-/// ## Description
 /// This structure describes fields for PNS initialize msg
 #[derive(ReadWriteRPC, CreateTypeSpec, Clone, PartialEq, Eq, Debug)]
 pub struct InitMsg {
@@ -20,7 +19,6 @@ pub struct InitMsg {
     pub config: ContractConfig,
 }
 
-/// ## Description
 /// This structure describes fields for mint msg
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
 #[rpc_msg(action = 0x09)]
@@ -28,6 +26,8 @@ pub struct MintMsg {
     pub domain: String,
     /// receiver address
     pub to: Address,
+    /// BYOC token id
+    pub payment_coin_id: u64,
     /// optional token_uri
     pub token_uri: Option<String>,
     /// optional parent
@@ -47,12 +47,13 @@ pub struct MPC20TransferFromMsg {
     pub amount: u128,
 }
 
-/// ## Description
 /// This structure describes fields for renew msg
 #[derive(ReadWriteRPC, CreateTypeSpec, IntoShortnameRPCEvent, Clone, PartialEq, Eq, Debug)]
 #[rpc_msg(action = 0x26)]
 pub struct RenewDomainMsg {
     pub domain: String,
     pub payer: Address,
+    /// BYOC token id
+    pub payment_coin_id: u64,
     pub subscription_years: u32,
 }

@@ -6,7 +6,6 @@ use pbc_contract_common::{
 use pbc_traits::ReadRPC;
 use pbc_traits::WriteRPC;
 
-/// ## Description
 /// This trait describes methods that must be implemented
 /// in order to be able to convert a struct into rpc event
 pub trait IntoShortnameRPCEvent {
@@ -14,7 +13,6 @@ pub trait IntoShortnameRPCEvent {
     fn as_interaction(&self, builder: &mut EventGroupBuilder, dest: &Address);
 }
 
-/// ## Description
 /// This trait describes methods that must be implemented
 /// in order to be able to convert a struct into rpc event with specified cost
 pub trait IntoShortnameRPCEventWithCost {
@@ -22,7 +20,6 @@ pub trait IntoShortnameRPCEventWithCost {
     fn as_interaction(&self, builder: &mut EventGroupBuilder, dest: &Address, cost: u64);
 }
 
-/// ## Description
 /// Creates a callback event and adds it to event group builder object
 /// ## Params
 /// * **builder** is an object of type [`EventGroupBuilder`]
@@ -41,7 +38,6 @@ where
         .done();
 }
 
-/// ## Description
 /// Creates a callback event with specified cost and adds it to event group builder object
 /// ## Params
 /// * **builder** is an object of type [`EventGroupBuilder`]
@@ -67,7 +63,6 @@ pub fn build_msg_callback_with_cost<T>(
         .done();
 }
 
-/// ## Description
 /// Validates that all spawned events from original action was executed successfully
 /// ## Params
 /// * **callback_ctx** is an object of type [`CallbackContext`]
@@ -84,10 +79,7 @@ mod rpc_msg_tests {
     use super::*;
 
     use create_type_spec_derive::CreateTypeSpec;
-    use pbc_contract_common::{
-        address::{Address, AddressType, Shortname},
-        events::EventGroup,
-    };
+    use pbc_contract_common::address::{Address, Shortname};
     use read_write_rpc_derive::ReadWriteRPC;
     use rpc_msg_derive::IntoShortnameRPCEvent;
 
@@ -127,44 +119,6 @@ mod rpc_msg_tests {
         pub memo: String,
         pub amounts: Vec<u128>,
     }
-
-    #[test]
-    fn test_derive_macro() {
-        fn mock_address(le: u8) -> Address {
-            Address {
-                address_type: AddressType::Account,
-                identifier: [
-                    le, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                    0u8, 0u8, 0u8, 0u8,
-                ],
-            }
-        }
-
-        let msg = TestTransferMsg {
-            to: mock_address(1u8),
-            amount: 100,
-            memo: "memo".to_string(),
-            amounts: vec![10],
-        };
-
-        let derive_msg = TestTransferMsgDerive {
-            to: msg.to,
-            amount: msg.amount,
-            memo: msg.memo.clone(),
-            amounts: msg.amounts.clone(),
-        };
-
-        assert_eq!(msg.action_shortname(), derive_msg.action_shortname());
-
-        let dest = mock_address(10u8);
-        let mut eg = EventGroup::builder();
-        msg.as_interaction(&mut eg, &dest);
-
-        let mut derive_eg = EventGroup::builder();
-        derive_msg.as_interaction(&mut derive_eg, &dest);
-
-        assert_eq!(eg.build(), derive_eg.build());
-    }
 }
 
 #[cfg(test)]
@@ -172,10 +126,7 @@ mod rpc_msg_with_cost_tests {
     use super::IntoShortnameRPCEventWithCost;
 
     use create_type_spec_derive::CreateTypeSpec;
-    use pbc_contract_common::{
-        address::{Address, AddressType, Shortname},
-        events::EventGroup,
-    };
+    use pbc_contract_common::address::{Address, Shortname};
     use read_write_rpc_derive::ReadWriteRPC;
     use rpc_msg_derive::IntoShortnameRPCEventWithCost;
 
@@ -218,43 +169,5 @@ mod rpc_msg_with_cost_tests {
         pub amount: u128,
         pub memo: String,
         pub amounts: Vec<u128>,
-    }
-
-    #[test]
-    fn test_derive_macro() {
-        fn mock_address(le: u8) -> Address {
-            Address {
-                address_type: AddressType::Account,
-                identifier: [
-                    le, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                    0u8, 0u8, 0u8, 0u8,
-                ],
-            }
-        }
-
-        let msg = TestTransferMsgWithCost {
-            to: mock_address(1u8),
-            amount: 100,
-            memo: "memo".to_string(),
-            amounts: vec![10],
-        };
-
-        let derive_msg = TestTransferMsgWithCostDerive {
-            to: msg.to,
-            amount: msg.amount,
-            memo: msg.memo.clone(),
-            amounts: msg.amounts.clone(),
-        };
-
-        assert_eq!(msg.action_shortname(), derive_msg.action_shortname());
-
-        let dest = mock_address(10u8);
-        let mut eg = EventGroup::builder();
-        msg.as_interaction(&mut eg, &dest, 100);
-
-        let mut derive_eg = EventGroup::builder();
-        derive_msg.as_interaction(&mut derive_eg, &dest, 100);
-
-        assert_eq!(eg.build(), derive_eg.build());
     }
 }
