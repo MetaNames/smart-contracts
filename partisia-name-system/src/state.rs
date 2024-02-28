@@ -155,7 +155,7 @@ impl PartisiaNameSystemState {
     }
 
     /// Returns parent info by domain
-    pub fn get_parent(&self, domain: &Domain) -> Option<&Domain> {
+    pub fn get_parent(&self, domain: &Domain) -> Option<Domain> {
         domain.parent_id.as_ref().and_then(|parent_id| {
             if !self.domains.contains_key(parent_id) {
                 panic!("Expected parent domain not found")
@@ -166,13 +166,13 @@ impl PartisiaNameSystemState {
     }
 
     /// Get all parents of a domain
-    pub fn get_parents(&self, domain_name: &str) -> Vec<&Domain> {
-        let mut parents: Vec<&Domain> = vec![];
+    pub fn get_parents(&self, domain_name: &str) -> Vec<Domain> {
+        let mut parents: Vec<Domain> = vec![];
         let mut current_domain = self.get_domain(domain_name);
 
         while let Some(domain) = current_domain {
-            if let Some(parent) = self.get_parent(domain) {
-                parents.push(parent);
+            if let Some(parent) = self.get_parent(&domain) {
+                parents.push(parent.clone());
                 current_domain = Some(parent);
             } else {
                 current_domain = None;
@@ -183,7 +183,7 @@ impl PartisiaNameSystemState {
     }
 
     /// Get root parent of a domain
-    pub fn get_root_parent(&self, domain_name: &str) -> Option<&Domain> {
+    pub fn get_root_parent(&self, domain_name: &str) -> Option<Domain> {
         let parents = self.get_parents(domain_name);
 
         match parents.last() {
@@ -194,7 +194,7 @@ impl PartisiaNameSystemState {
                     "Expected root parent to have no parent"
                 );
 
-                Some(parent)
+                Some(parent.clone())
             }
             None => None,
         }

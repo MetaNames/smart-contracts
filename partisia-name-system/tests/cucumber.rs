@@ -44,8 +44,9 @@ fn pns_contract(world: &mut PartisiaNameSystemWorld) {
 
 #[given(regex = "'(.+)' domain is expired")]
 fn domain_is_expired(world: &mut PartisiaNameSystemWorld, domain_name: String) {
-    let domain = world.state.domains.get_mut(&domain_name).unwrap();
+    let mut domain = world.state.domains.get(&domain_name).unwrap();
     domain.expires_at = Some(yesterday_timestamp());
+    world.state.domains.insert(domain_name, domain);
 }
 
 #[given(regex = ".+ minted '(.+)' domain without a parent")]
