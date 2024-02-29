@@ -87,9 +87,7 @@ pub fn execute_set_approval_for_all(
     if msg.approved {
         state.operator_approvals.insert(operator_approval, Unit {});
     } else {
-        state
-            .operator_approvals
-            .remove(&operator_approval)
+        state.operator_approvals.remove(&operator_approval)
     }
 
     vec![]
