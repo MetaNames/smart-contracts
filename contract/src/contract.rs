@@ -209,8 +209,8 @@ pub fn mint_batch(
     let mut all_events = vec![];
     let mut state_holder = state;
     for msg in mint_msgs {
-        let (new_state, mut mint_events) = mint_domain(&ctx, state_holder, &msg);
-        all_events.append(&mut mint_events);
+        let (new_state, mint_events) = mint_domain(&ctx, state_holder, &msg);
+        all_events.extend(mint_events);
         state_holder = new_state;
     }
 
