@@ -258,6 +258,23 @@ pub fn is_domain_owner(
     (state, vec![])
 }
 
+#[action(shortname = 0x20)]
+pub fn mint_record_batch(
+    ctx: ContractContext,
+    mut state: ContractState,
+    mint_msgs: Vec<pns_msg::PnsRecordMintMsg>,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_contract_enabled(&state);
+
+    let mut events = vec![];
+    for msg in mint_msgs {
+        let mint_events = pns_actions::execute_record_mint(&ctx, &mut state.pns, &msg);
+        events.extend(mint_events);
+    }
+
+    (state, events)
+}
+
 #[action(shortname = 0x21)]
 pub fn mint_record(
     ctx: ContractContext,
