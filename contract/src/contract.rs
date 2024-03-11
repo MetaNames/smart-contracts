@@ -258,30 +258,6 @@ pub fn is_domain_owner(
     (state, vec![])
 }
 
-#[callback(shortname = 0x30)]
-pub fn on_mint_callback(
-    ctx: ContractContext,
-    callback_ctx: CallbackContext,
-    state: ContractState,
-    msg: MintMsg,
-) -> (ContractState, Vec<EventGroup>) {
-    assert_contract_enabled(&state);
-
-    assert_callback_success(&callback_ctx);
-
-    assert_and_get_payment_info(&state.config, msg.payment_coin_id);
-
-    action_mint(
-        &ctx,
-        state,
-        &msg.domain,
-        &msg.to,
-        &msg.token_uri,
-        &msg.parent_id,
-        &msg.subscription_years,
-    )
-}
-
 #[action(shortname = 0x21)]
 pub fn mint_record(
     ctx: ContractContext,
@@ -441,6 +417,30 @@ pub fn renew_subscription(
     };
 
     (state, events)
+}
+
+#[callback(shortname = 0x30)]
+pub fn on_mint_callback(
+    ctx: ContractContext,
+    callback_ctx: CallbackContext,
+    state: ContractState,
+    msg: MintMsg,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_contract_enabled(&state);
+
+    assert_callback_success(&callback_ctx);
+
+    assert_and_get_payment_info(&state.config, msg.payment_coin_id);
+
+    action_mint(
+        &ctx,
+        state,
+        &msg.domain,
+        &msg.to,
+        &msg.token_uri,
+        &msg.parent_id,
+        &msg.subscription_years,
+    )
 }
 
 #[callback(shortname = 0x31)]
