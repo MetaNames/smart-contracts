@@ -13,7 +13,6 @@ use crate::{
 /// otherwise panics with error message defined in [`ContractError`]
 pub fn execute_init(ctx: &ContractContext, msg: &NFTInitMsg) -> NFTContractState {
     NFTContractState {
-        contract_owner: Some(ctx.sender),
         name: msg.name.clone(),
         symbol: msg.symbol.clone(),
         supply: 0,
