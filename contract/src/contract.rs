@@ -225,8 +225,6 @@ pub fn owner_info(
     state: ContractState,
     address: Address,
 ) -> (ContractState, Vec<EventGroup>) {
-    assert_contract_enabled(&state);
-
     let mut event_builder = EventGroup::builder();
 
     let domain_count = state
@@ -254,8 +252,6 @@ pub fn is_domain_owner(
     domain: String,
     address: Address,
 ) -> (ContractState, Vec<EventGroup>) {
-    assert_contract_enabled(&state);
-
     let token_id = state.pns.get_token_id(&domain);
     assert!(token_id.is_some(), "{}", ContractError::DomainNotMinted);
 
