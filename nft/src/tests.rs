@@ -35,7 +35,10 @@ fn proper_mint() {
 
     assert_eq!(state.owners.get(&1), Some(mock_address(alice)));
 
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![1]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![1])
+    );
 
     assert_eq!(state.token_uri_details.get(&1), Some("token".to_string()));
 }
@@ -243,8 +246,14 @@ fn proper_contract_owner_transfer_from() {
         &transfer_msg,
     );
     assert_eq!(state.owners.get(&1), Some(mock_address(contract_owner)));
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![]));
-    assert_eq!(state.owners_inventory.get(&mock_address(contract_owner)), Some(vec![1]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![])
+    );
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(contract_owner)),
+        Some(vec![1])
+    );
 }
 
 #[test]
@@ -277,8 +286,14 @@ fn proper_owner_transfer_from() {
 
     let _ = execute_transfer_from(&mock_contract_context(alice), &mut state, &transfer_msg);
     assert_eq!(state.owners.get(&1), Some(mock_address(bob)));
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![]));
-    assert_eq!(state.owners_inventory.get(&mock_address(bob)), Some(vec![1]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![])
+    );
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(bob)),
+        Some(vec![1])
+    );
 }
 
 #[test]
@@ -319,8 +334,14 @@ fn proper_approved_transfer_from() {
     let _ = execute_transfer_from(&mock_contract_context(bob), &mut state, &transfer_msg);
     assert_eq!(state.owners.get(&1), Some(mock_address(bob)));
     assert_eq!(state.token_approvals.len(), 0);
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![]));
-    assert_eq!(state.owners_inventory.get(&mock_address(bob)), Some(vec![1]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![])
+    );
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(bob)),
+        Some(vec![1])
+    );
 }
 
 #[test]
@@ -360,8 +381,14 @@ fn proper_operator_transfer_from() {
 
     let _ = execute_transfer_from(&mock_contract_context(bob), &mut state, &transfer_msg);
     assert_eq!(state.owners.get(&1), Some(mock_address(bob)));
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![]));
-    assert_eq!(state.owners_inventory.get(&mock_address(bob)), Some(vec![1]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![])
+    );
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(bob)),
+        Some(vec![1])
+    );
     assert_eq!(state.token_approvals.len(), 0);
     assert_eq!(
         state.operator_approvals.contains_key(&OperatorApproval {
@@ -455,7 +482,10 @@ fn proper_burn() {
     let _ = execute_burn(&mock_contract_context(alice), &mut state, &burn_msg);
     assert_eq!(state.supply, 0);
     assert!(!state.exists(1));
-    assert_eq!(state.owners_inventory.get(&mock_address(alice)), Some(vec![]));
+    assert_eq!(
+        state.owners_inventory.get(&mock_address(alice)),
+        Some(vec![])
+    );
 }
 
 #[test]
