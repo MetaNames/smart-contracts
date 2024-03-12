@@ -229,9 +229,16 @@ pub fn owner_info(
 
     let mut event_builder = EventGroup::builder();
 
+    let domain_count = state
+        .nft
+        .owners_inventory
+        .get(&address)
+        .unwrap_or(vec![])
+        .iter()
+        .count() as u32;
     let owner_info_event = OwnerInfoEvent {
         owner: address,
-        domain_count: state.stats.mint_count.get(&address).unwrap_or(0),
+        domain_count,
         total_supply: state.nft.supply,
     };
 
