@@ -90,10 +90,7 @@ pub fn action_mint(
 
     state.stats.increase_mint_count(ctx.sender);
 
-    let events = nft_events
-        .into_iter()
-        .chain(pns_events)
-        .collect();
+    let events = nft_events.into_iter().chain(pns_events).collect();
 
     (state, events)
 }

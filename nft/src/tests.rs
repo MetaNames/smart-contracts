@@ -91,30 +91,24 @@ fn proper_set_approve_for_all() {
     };
     let _ =
         execute_set_approval_for_all(&mock_contract_context(alice), &mut state, &approve_all_msg);
-    assert!(
-        state.operator_approvals.contains_key(&OperatorApproval {
-            operator: mock_address(bob),
-            owner: mock_address(alice)
-        })
-    );
+    assert!(state.operator_approvals.contains_key(&OperatorApproval {
+        operator: mock_address(bob),
+        owner: mock_address(alice)
+    }));
 
     let approve_all_msg = NFTApproveForAllMsg {
         operator: mock_address(alice),
         approved: true,
     };
     let _ = execute_set_approval_for_all(&mock_contract_context(bob), &mut state, &approve_all_msg);
-    assert!(
-        state.operator_approvals.contains_key(&OperatorApproval {
-            operator: mock_address(bob),
-            owner: mock_address(alice)
-        })
-    );
-    assert!(
-        state.operator_approvals.contains_key(&OperatorApproval {
-            operator: mock_address(alice),
-            owner: mock_address(bob)
-        })
-    );
+    assert!(state.operator_approvals.contains_key(&OperatorApproval {
+        operator: mock_address(bob),
+        owner: mock_address(alice)
+    }));
+    assert!(state.operator_approvals.contains_key(&OperatorApproval {
+        operator: mock_address(alice),
+        owner: mock_address(bob)
+    }));
 }
 
 #[test]
@@ -363,12 +357,10 @@ fn proper_operator_transfer_from() {
     assert_eq!(state.owners_balance.get(&mock_address(alice)), Some(0));
     assert_eq!(state.owners_balance.get(&mock_address(bob)), Some(1));
     assert_eq!(state.token_approvals.len(), 0);
-    assert!(
-        state.operator_approvals.contains_key(&OperatorApproval {
-            owner: mock_address(alice),
-            operator: mock_address(bob)
-        })
-    );
+    assert!(state.operator_approvals.contains_key(&OperatorApproval {
+        owner: mock_address(alice),
+        operator: mock_address(bob)
+    }));
 }
 
 #[test]
