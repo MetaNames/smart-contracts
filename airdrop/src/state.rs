@@ -3,7 +3,7 @@ use pbc_contract_common::{address::Address, avl_tree_map::AvlTreeMap};
 use read_write_state_derive::ReadWriteState;
 
 #[repr(C)]
-#[derive(ReadWriteState, CreateTypeSpec, Debug)]
+#[derive(ReadWriteState, CreateTypeSpec, Default, Debug)]
 pub struct AirdropState {
     pub inventory: AvlTreeMap<Address, u128>,
 }

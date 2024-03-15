@@ -17,6 +17,7 @@ use pbc_contract_common::{
 use nft::{actions as nft_actions, msg as nft_msg};
 
 use access_control::{actions as ac_actions, msg as ac_msg};
+use airdrop::actions as airdrop_actions;
 use partisia_name_system::{actions as pns_actions, msg as pns_msg, state::RecordClass};
 use utils::events::assert_callback_success;
 
@@ -60,9 +61,11 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
         admin_addresses: msg.admin_addresses,
         additional_roles: vec![UserRole::Whitelist {} as u8, UserRole::Airdrop {} as u8],
     });
+    let airdrop = airdrop_actions::execute_init();
 
     let state = ContractState {
         access_control,
+        airdrop,
         config: msg.config,
         nft,
         pns,
@@ -433,6 +436,21 @@ pub fn renew_subscription(
     (state, events)
 }
 
+#[action(shortname = 0x27)]
+pub fn add_airdrop(
+    ctx: ContractContext,
+    mut state: ContractState,
+    addresses: Vec<Address>,
+) -> (ContractState, Vec<EventGroup>) {
+    assert_has_role(&state, UserRole::Airdrop {}, &ctx.sender);
+
+    for address in addresses {
+        airdrop_actions::execute_add_airdrop(&mut state.airdrop, &address);
+    }
+
+    (state, vec![])
+}
+
 #[callback(shortname = 0x30)]
 pub fn on_mint_callback(
     ctx: ContractContext,
@@ -554,6 +572,14 @@ fn mint_domain(
     }
 
     (mut_state, events)
+}
+
+fn assert_has_role(state: &ContractState, role: UserRole, account: &Address) {
+    assert!(
+        state.access_control.has_role(role as u8, account),
+        "{}",
+        ContractError::Unauthorized
+    );
 }
 
 fn assert_contract_enabled(state: &ContractState) {
