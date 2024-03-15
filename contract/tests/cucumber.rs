@@ -16,7 +16,10 @@ use partisia_name_system::{
     state::RecordClass,
 };
 use utils::{
-    tests::{get_address_for_user, mock_address, mock_contract_context, mock_successful_callback_context, ALICE_ADDRESS, PAYMENT_TOKEN_ADDRESS, SYSTEM_ADDRESS},
+    tests::{
+        get_address_for_user, mock_address, mock_contract_context,
+        mock_successful_callback_context, ALICE_ADDRESS, PAYMENT_TOKEN_ADDRESS, SYSTEM_ADDRESS,
+    },
     time::milliseconds_in_years,
 };
 

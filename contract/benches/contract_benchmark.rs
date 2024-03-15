@@ -2,7 +2,7 @@ use std::mem::take;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use meta_names_contract::{
-    contract::{initialize, on_mint_callback, transfer_domain},
+    contract::{initialize, on_mint_callback, transfer_from},
     msg::{InitMsg, MintMsg},
     state::{ContractConfig, ContractState, Fees, PaymentInfo},
 };
@@ -64,19 +64,19 @@ fn mint_domain(
     new_state
 }
 
-fn domain_transfer(
+fn domain_transfer_from(
     state: &mut ContractState,
     user: String,
-    domain: String,
+    token_id: u128,
     to: String,
 ) -> ContractState {
     let state = take(state);
-    let (new_state, _) = transfer_domain(
+    let (new_state, _) = transfer_from(
         mock_contract_context(get_address_for_user(user.clone())),
         state,
         mock_address(get_address_for_user(user.clone())),
         mock_address(get_address_for_user(to)),
-        domain,
+        token_id,
     );
 
     new_state
@@ -89,12 +89,12 @@ fn benchmark_domain_transfer(domains_count: u64) {
     let to = "bob".to_string();
 
     for i in 0..domains_count {
-      let new_domain = format!("test{}", i);
+        let new_domain = format!("test{}", i);
         state = mint_domain(&mut state, user.clone(), new_domain, 0);
     }
 
     let mut state = mint_domain(&mut state, user.clone(), domain.clone(), 0);
-    domain_transfer(&mut state, user, domain, to);
+    domain_transfer_from(&mut state, user, 0, to);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
