@@ -38,6 +38,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "airdrop"
+version = "1.0.0"
+dependencies = [
+ "create_type_spec_derive",
+ "pbc_contract_codegen",
+ "pbc_contract_common",
+ "pbc_lib",
+ "pbc_traits",
+ "read_write_rpc_derive",
+ "read_write_state_derive",
+ "rpc-msg-derive",
+ "serde_json",
+ "utils",
+]
+
+[[package]]
 name = "anes"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
