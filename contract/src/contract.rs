@@ -58,7 +58,7 @@ pub fn initialize(ctx: ContractContext, msg: InitMsg) -> (ContractState, Vec<Eve
     );
     let access_control = ac_actions::execute_init(&ac_msg::ACInitMsg {
         admin_addresses: msg.admin_addresses,
-        additional_roles: vec![UserRole::Whitelist {} as u8],
+        additional_roles: vec![UserRole::Whitelist {} as u8, UserRole::Airdrop {} as u8],
     });
 
     let state = ContractState {

@@ -38,6 +38,8 @@ pub enum UserRole {
     Admin {},
     #[discriminant(1)]
     Whitelist {},
+    #[discriminant(2)]
+    Airdrop {},
 }
 
 #[repr(C)]
