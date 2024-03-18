@@ -3,7 +3,9 @@ use std::{mem::take, panic::catch_unwind};
 use cucumber::{given, then, when, World};
 use meta_names_contract::{
     contract::{
-        add_airdrop, approve_domain, initialize, mint, mint_batch, on_mint_callback, on_renew_subscription_callback, renew_subscription, transfer_domain, update_config, update_user_role
+        add_airdrop, approve_domain, initialize, mint, mint_batch, on_mint_callback,
+        on_renew_subscription_callback, renew_subscription, transfer_domain, update_config,
+        update_user_role,
     },
     msg::{InitMsg, MintMsg, RenewDomainMsg},
     state::{ContractConfig, ContractState, Fees, PaymentInfo, UserRole},
@@ -519,7 +521,10 @@ fn domain_expires_in(world: &mut ContractWorld, domain: String, action: String, 
 
 #[then(regex = r"(\w+) (has|has not) the airdrop")]
 fn has_airdrop(world: &mut ContractWorld, user: String, action: String) {
-    let has_airdrop = world.state.airdrop.has_airdrop(&mock_address(get_address_for_user(user)));
+    let has_airdrop = world
+        .state
+        .airdrop
+        .has_airdrop(&mock_address(get_address_for_user(user)));
 
     let has = action == "has";
     assert_eq!(has_airdrop, has);

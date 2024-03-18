@@ -21,7 +21,7 @@ impl AirdropState {
             if remaining == 0 {
                 self.inventory.remove(address);
             } else {
-                self.inventory.insert(address.clone(), remaining);
+                self.inventory.insert(*address, remaining);
             }
         }
     }
@@ -29,6 +29,6 @@ impl AirdropState {
     /// Add airdrop to the address
     pub fn _add_airdrop(&mut self, address: &Address) {
         let airdrop = self.inventory.get(address).unwrap_or(0);
-        self.inventory.insert(address.clone(), airdrop + 1);
+        self.inventory.insert(*address, airdrop + 1);
     }
 }
